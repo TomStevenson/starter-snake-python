@@ -177,20 +177,11 @@ def move():
     # left
     coord = (myHead["x"]-1, myHead["y"])
     if coord not in badCoords:
-        #snake head
         coord = (myHead["x"]-1, myHead["y"]-1)
         if coord not in snake_heads:
             coord = (myHead["x"]-1, myHead["y"]+1)
             if coord not in snake_heads:
-                coord = (myHead["x"]-2, myHead["y"])
-                if coord not in snake_heads:
-                    coord = (myHead["x"]-3, myHead["y"])
-                    if coord not in snake_heads:
-                        coord = (myHead["x"]-1, myHead["y"]-2)
-                        if coord not in snake_heads:
-                            coord = (myHead["x"]-1, myHead["y"]+2)
-                            if coord not in snake_heads:
-                                possibleMoves.append("left")
+                possibleMoves.append("left")
     # right
     coord = (myHead["x"]+1, myHead["y"])
     if coord not in badCoords:
@@ -198,14 +189,7 @@ def move():
         if coord not in snake_heads:
             coord = (myHead["x"]+1, myHead["y"]+1)
             if coord not in snake_heads:
-                if coord not in snake_heads:
-                    coord = (myHead["x"]+2, myHead["y"])
-                    if coord not in snake_heads:
-                        coord = (myHead["x"]+1, myHead["y"]-2)
-                        if coord not in snake_heads:
-                            coord = (myHead["x"]+1, myHead["y"]+2)
-                            if coord not in snake_heads:
-                                possibleMoves.append("right")
+                possibleMoves.append("right")
             
     # up
     coord = (myHead["x"], myHead["y"]-1)
@@ -214,13 +198,7 @@ def move():
         if coord not in snake_heads:
             coord = (myHead["x"]+1, myHead["y"]-1)
             if coord not in snake_heads:
-                coord = (myHead["x"], myHead["y"]-2)
-                if coord not in snake_heads:
-                    coord = (myHead["x"]+1, myHead["y"]-2)
-                    if coord not in snake_heads:
-                        coord = (myHead["x"]-1, myHead["y"]-2)
-                        if coord not in snake_heads:
-                            possibleMoves.append("up")
+                possibleMoves.append("up")
     # down
     coord = (myHead["x"], myHead["y"]+1)
     if coord not in badCoords:
@@ -228,14 +206,7 @@ def move():
         if coord not in snake_heads:
             coord = (myHead["x"]-1, myHead["y"]+1)
             if coord not in snake_heads:
-                coord = (myHead["x"], myHead["y"]+2)
-                if coord not in snake_heads:
-                    if coord not in snake_heads:
-                        coord = (myHead["x"]+1, myHead["y"]+2)
-                        if coord not in snake_heads:
-                            coord = (myHead["x"]-1, myHead["y"]+2)
-                            if coord not in snake_heads:
-                                possibleMoves.append("down")
+                possibleMoves.append("down")
 
     print("DEBUG: PossibleMoves={}".format(possibleMoves))
     
@@ -248,26 +219,10 @@ def move():
         testCoord = (a, myHead["y"])
         if testCoord in badCoords:
             riskLeft += 1
-    for a in range(0, int(myHead["x"]) - 1):
-        testCoord = (a, myHead["y"] - 1)
-        if testCoord in badCoords:
-            riskLeft += 1
-    for a in range(0, int(myHead["x"]) - 1):
-        testCoord = (a, myHead["y"] + 1)
-        if testCoord in badCoords:
-            riskLeft += 1
 
     # if preferred move is right, check from x coord to x = max board size for other snakes.  If other snake, mark right as risky
     for b in range(int(myHead["x"]) + 1, width - 1):
         testCoord = (b, myHead["y"])
-        if testCoord in badCoords:
-            riskRight += 1
-    for b in range(int(myHead["x"]) + 1, width - 1):
-        testCoord = (b, myHead["y"] - 1)
-        if testCoord in badCoords:
-            riskRight += 1
-    for b in range(int(myHead["x"]) + 1, width - 1):
-        testCoord = (b, myHead["y"] + 1)
         if testCoord in badCoords:
             riskRight += 1
 
@@ -276,24 +231,12 @@ def move():
         testCoord = (myHead["x"], c)
         if testCoord in badCoords:
             riskUp += 1
-        testCoord = (myHead["x"] + 1, c)
-        if testCoord in badCoords:
-            riskUp += 1
-        testCoord = (myHead["x"] - 1, c)
-        if testCoord in badCoords:
-            riskUp += 1
         
     # if preferred move is down, check from y coord to y = max for other snakes.  If other snake, mark down as risk
     for d in range(int(myHead["y"]) + 1, height -1):
         testCoord = (myHead["x"], d)
         if testCoord in badCoords:
             riskDown += 1
-        testCoord = (myHead["x"] + 1, d)
-        if testCoord in badCoords:
-            riskUp += 1
-        testCoord = (myHead["x"] - 1, d)
-        if testCoord in badCoords:
-            riskUp += 1
     
     riskyMoves = []
     
