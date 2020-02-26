@@ -386,7 +386,7 @@ def move():
                 pms = rrr[1]
                 break
             #<0.2 beats schnake so
-        if ((pms != -1) and (pms < 3)):
+        if ((pms != -1) and (pms < 5)):
             direction = preferredDirection
             print("DEBUG: choosing preferred direction: {}".format(direction))
 
