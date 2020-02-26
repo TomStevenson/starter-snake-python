@@ -218,59 +218,136 @@ def move():
 
     print("DEBUG: PossibleMoves={}".format(possibleMoves))
     
+    #left
+    avoidHeadMoves = []
+    testAreas = []
+    testAreas.append((myHead["x"]-1, myHead["y"]))
+    testAreas.append((myHead["x"]-1, myHead["y"] - 1))
+    testAreas.append((myHead["x"]-1, myHead["y"] + 1))
+    testAreas.append((myHead["x"] - 2, myHead["y"]))
+    testAreas.append((myHead["x"] - 2, myHead["y"] - 1))
+    testAreas.append((myHead["x"] - 2, myHead["y"] + 1))
+    for test in testAreas:
+        if test in snake_heads:
+            for snake in data["board"]["snakes"]:
+                temp = (snake["body"][0]["x"], snake["body"][0]["y"])
+                if (temp == test):
+                    otherSnakeSize = len(snake["body"])
+                    if (mySize < otherSnakeSize):
+                        avoidHeadMoves.append("left")
+                        print("DEBUG: Avoid snake head!")
+
+    testAreas.clear()
+
+    # right
+    testAreas.append((myHead["x"] + 1, myHead["y"]))
+    testAreas.append((myHead["x"] + 1, myHead["y"] - 1))
+    testAreas.append((myHead["x"] + 1, myHead["y"] + 1))
+    testAreas.append((myHead["x"] + 2, myHead["y"]))
+    testAreas.append((myHead["x"] + 2, myHead["y"] - 1))
+    testAreas.append((myHead["x"] + 2, myHead["y"] + 1))
+    for test in testAreas:
+        if test in snake_heads:
+            for snake in data["board"]["snakes"]:
+                temp = (snake["body"][0]["x"], snake["body"][0]["y"])
+                if (temp == test):
+                    otherSnakeSize = len(snake["body"])
+                    if (mySize < otherSnakeSize):
+                        avoidHeadMoves.append("right")
+                        print("DEBUG: Avoid snake head!")
+
+    testAreas.clear()
+
+    # up
+    testAreas.append((myHead["x"], myHead["y"] - 1))
+    testAreas.append((myHead["x"] - 1, myHead["y"] - 1))
+    testAreas.append((myHead["x"] + 1, myHead["y"] - 1))
+    testAreas.append((myHead["x"], myHead["y"] - 2))
+    testAreas.append((myHead["x"] - 1, myHead["y"] - 2))
+    testAreas.append((myHead["x"] + 1, myHead["y"] - 2))
+    for test in testAreas:
+        if test in snake_heads:
+            for snake in data["board"]["snakes"]:
+                temp = (snake["body"][0]["x"], snake["body"][0]["y"])
+                if (temp == test):
+                    otherSnakeSize = len(snake["body"])
+                    if (mySize < otherSnakeSize):
+                        avoidHeadMoves.append("up")
+                        
+
+    testAreas.clear()
+
+# down
+    testAreas.append((myHead["x"], myHead["y"] + 1))
+    testAreas.append((myHead["x"] - 1, myHead["y"] + 1))
+    testAreas.append((myHead["x"] + 1, myHead["y"] + 1))
+    testAreas.append((myHead["x"], myHead["y"] + 2))
+    testAreas.append((myHead["x"] - 1, myHead["y"] + 2))
+    testAreas.append((myHead["x"] + 1, myHead["y"] + 2))
+    for test in testAreas:
+        if test in snake_heads:
+            for snake in data["board"]["snakes"]:
+                temp = (snake["body"][0]["x"], snake["body"][0]["y"])
+                if (temp == test):
+                    otherSnakeSize = len(snake["body"])
+                    if (mySize < otherSnakeSize):
+                        avoidHeadMoves.append("down")
+                        
+    print("DEBUG: Avoid Head Moves: {}".format(avoidHeadMoves))
+
     riskyMoves = []
     myTailCoord = (myTail["x"], myTail["y"])
     snakes = data["board"]["snakes"]
 
     print("RISK UP")
-    riskUp = check_risk(myHead["y"] - 3, myHead["y"], myHead["x"] - 3, myHead["x"] + 3, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 0)
+    riskUp = check_risk(myHead["y"] - 3, myHead["y"], myHead["x"] - 2, myHead["x"] + 2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 0)
     print("RiskUp 1 = {}".format(riskUp))
     #check this
-    riskUp1 = count_empty(0, myHead["y"], myHead["x"], myHead["y"], snakeCoords, myTailCoord, snake_tails, snake_heads, 1)
+    riskUp1 = count_empty(0, myHead["y"], myHead["x"], myHead["y"] -1, snakeCoords, myTailCoord, snake_tails, snake_heads, 1)
     print("RiskUp 2 = {}".format(riskUp1))
 
     riskUp2 = 0
     if (myHead["y"] <= 2):
-        riskUp2 += 0.1
+        riskUp2 += 0.5
 
     tup = ('up', riskUp + riskUp1 + riskUp2)
     riskyMoves.append(tup)
     
     print("RISK DOWN")
-    riskDown = check_risk((myHead["y"]) + 1, myHead["y"] + 4, myHead["x"] - 3, myHead["x"] + 3, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 0)
+    riskDown = check_risk((myHead["y"]) + 1, myHead["y"] + 4, myHead["x"] - 2, myHead["x"] + 2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 0)
     print("RiskDown 1 = {}".format(riskDown))
     riskDown1 = count_empty(myHead["y"] + 1, height, myHead["x"], height - myHead["y"] - 1, snakeCoords, myTailCoord, snake_tails, snake_heads, 1)
     print("RiskDown 2 = {}".format(riskDown1))
 
     riskDown2 = 0
     if (myHead["y"] > height - 3):
-        riskDown2 += 0.1
+        riskDown2 += 0.5
 
     tup = ('down', riskDown + riskDown1 + riskDown2)
     riskyMoves.append(tup)
     
     print("RISK LEFT")
-    riskLeft = check_risk(myHead["x"] - 4, myHead["x"] - 1, myHead["y"]-3, myHead["y"]+3, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 1)
+    riskLeft = check_risk(myHead["x"] - 4, myHead["x"] - 1, myHead["y"]-2, myHead["y"]+2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 1)
     print("RiskLeft 1 = {}".format(riskLeft))
-    riskLeft1 = count_empty(0, myHead["x"], myHead["y"], myHead["x"], snakeCoords, myTailCoord, snake_tails, snake_heads, 0) 
+    riskLeft1 = count_empty(0, myHead["x"] - 1, myHead["y"], myHead["x"], snakeCoords, myTailCoord, snake_tails, snake_heads, 0) 
     print("RiskLeft 2 = {}".format(riskLeft1))
 
     riskLeft2 = 0
     if (myHead["x"] <= 2):
-        riskLeft2 += 0.1
+        riskLeft2 += 0.5
 
     tup = ('left', riskLeft + riskLeft1 + riskLeft2)
     riskyMoves.append(tup)
     
     print("RISK RIGHT")
-    riskRight = check_risk(myHead["x"] + 1, myHead["x"] + 4, myHead["y"]-3, myHead["y"]+3, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 1)
+    riskRight = check_risk(myHead["x"] + 1, myHead["x"] + 4, myHead["y"]-2, myHead["y"]+2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 1)
     print("RiskRight 1 = {}".format(riskRight))
     riskRight1 = count_empty(myHead["x"] + 1, width, myHead["y"], width - myHead["x"] - 1, snakeCoords, myTailCoord, snake_tails, snake_heads, 0)
     print("RiskRight 2 = {}".format(riskRight1))
 
     riskRight2 = 0
     if (myHead["x"] > width - 3):
-        riskRight2 += 0.1
+        riskRight2 += 0.5
 
     tup = ('right', riskRight + riskRight1 + riskRight2)
     riskyMoves.append(tup)
@@ -286,18 +363,20 @@ def move():
     preferredDirection = None
     for pm in preferredMoves:
         if pm in possibleMoves:
-            preferredDirection = pm
-            print("DEBUG: Preferred direction = {}".format(preferredDirection))
-            break
+            if pm not in avoidHeadMoves:
+                preferredDirection = pm
+                print("DEBUG: Preferred direction = {}".format(preferredDirection))
+                break
 
     # least risk           
     leastRisk = None
     for lrm in riskyMoves:
         if lrm[0] in possibleMoves:
-            leastRisk = lrm[0]
-            leastRiskScore = lrm[1]
-            print("DEBUG: least risk move: {}".format(leastRisk))
-            break
+            if lrm[0] not in avoidHeadMoves:
+                leastRisk = lrm[0]
+                leastRiskScore = lrm[1]
+                print("DEBUG: least risk move: {}".format(leastRisk))
+                break
 
     pms = -1
     direction = leastRisk
@@ -307,7 +386,7 @@ def move():
                 pms = rrr[1]
                 break
             #<0.2 beats schnake so
-        if ((pms != -1) and (pms < 0.25)):
+        if ((pms != -1) and (pms < 3)):
             direction = preferredDirection
             print("DEBUG: choosing preferred direction: {}".format(direction))
 
@@ -346,10 +425,9 @@ def count_empty(aFrom, aTo, b, total, snakeCoords, myTail, snake_tails, snake_he
     #print("aFrom={}".format(aFrom))
     #print("aTo={}".format(aTo))
     #print("b={}".format(b))
-    loopCounter = 0
-
+    fakeTotal = 0
     for x in range(aFrom, aTo):
-        loopCounter += 1
+        fakeTotal += 1
         if (mode > 0):
             testCoord = (b, x)
             #print ("testCoord1:{}".format(testCoord))
@@ -357,40 +435,40 @@ def count_empty(aFrom, aTo, b, total, snakeCoords, myTail, snake_tails, snake_he
             testCoord = (x, b)
             #print ("testCoord2:{}".format(testCoord))
         
+        #print (snakeCoords)
         if (testCoord not in snakeCoords):
+            #print("EMPTY COUNT + ! !!!!!!!!!!")
             emptyCount += 1
         else:
-            #print("DEBUG: we have encountered a snake part - stop counting")
-            total = loopCounter
             break
-    
+        
     ratio = 0
     if (emptyCount == 0):
         #print("EmptyCount = 0 !")
-        ratio
-    else:
-        ratio = total / emptyCount
+        emptyCount = 0.5
+    
+    ratio = total/emptyCount
 
-    if (ratio >= 0.8) and (ratio <= 1.2):
+    #if (ratio >= 0.8) and (ratio <= 1.2):
         #print("ratio = 0.8-1.2, so set to zero - no risk")
-        ratio = 0
+        #ratio = 0
 
-    ratio = ratio
-
-    #print ("EmptyCount:{}".format(emptyCount))
-    #print ("Total:{}".format(total))
-    #print ("Ratio:{}".format(ratio))
+    print ("EmptyCount:{}".format(emptyCount))
+    print ("Total:{}".format(total))
+    print ("Ratio:{}".format(ratio))
 
     return ratio
 
 
 def check_risk(a1, a2, b1, b2, badCoords, snakeCoords, me, sh, snakes, mode):
     risk = 0
-    heads = 0
+
     area = abs(a2 - a1) * abs(b2 - b1)
     print ("Desired Area = {}".format(area))
+    fakeArea = 0
     for first_loop in range(b1, b2):
         for second_loop in range(a1, a2):
+            fakeArea += 1
             if (mode > 0):
                 testCoord = (second_loop, first_loop)
             else:
@@ -399,8 +477,8 @@ def check_risk(a1, a2, b1, b2, badCoords, snakeCoords, me, sh, snakes, mode):
                     risk += 1
                     #print("DEBUG: +1 to risk - other snake")
     if (risk > 0):
-        riskFactor = risk / area
-        riskFactor = riskFactor + heads
+        riskFactor = risk / fakeArea
+        riskFactor = riskFactor
         #if (riskFactor < 0.1):
             #riskFactor = 0
     else:
