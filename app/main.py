@@ -49,20 +49,25 @@ def start():
 
 def get_food_list(snake_head, data):
     food_list = data.get('food')
+    print(food_list)
     closest = []
     last_score = 999999
     l = []
     for current_food in data["board"]["food"]:
         current_distance = [99, 99]
-        current_distance[0] = snake_head["x"] - current_food["x"]
-        current_distance[1] = snake_head["y"] - current_food["y"]
-        current_distance[0] = current_distance[0] * current_distance[0]
-        current_distance[1] = current_distance[1] * current_distance[1]
-        current_score = current_distance[0] + current_distance[1]
+        current_distance[0] = abs(snake_head["x"] - current_food["x"])
+        current_distance[1] = abs(snake_head["y"] - current_food["y"])
+        #current_distance[0] = current_distance[0] * current_distance[0]
+        #current_distance[1] = current_distance[1] * current_distance[1]
+        current_score = current_distance[0] * current_distance[1]
+        #current_score = current_distance[0] + current_distance[1]
         if current_score < last_score:
             closest = current_food
-            last_score = current_score   
-    l.append(closest) 
+            last_score = current_score
+            print("Closest food = {}".format(closest))
+            print("Score = {}".format(last_score))
+    l.append(closest)
+    print(closest) 
     return l
 
 def get_first_common_element(x,y):
@@ -164,13 +169,15 @@ def move():
     
     healthThreshold = 20
     if (amountOfFood < 10):
-        healthThreshold = 30
+        healthThreshold = 75
     elif (amountOfFood < 5):
-        healthThreshold = 50
+        healthThreshold = 100
 
-    attack = 0
+    goGetFood = 0
     if ((myHealth < healthThreshold) or (longer_snake == True)) :
         print("DEBUG: Go get food")
+        if (myHealth < healthThreshold):
+            goGetFood = 1
     elif (shortest_length < len(data["you"]["body"])):
         print("DEBUG: Chase shortest snake")
         first_food["x"] = shortest_snake["body"][0]["x"]
@@ -299,12 +306,12 @@ def move():
     myTailCoord = (myTail["x"], myTail["y"])
     snakes = data["board"]["snakes"]
 
-    print("RISK UP")
+    #print("RISK UP")
     riskUp = check_risk(myHead["y"] - 3, myHead["y"], myHead["x"] - 2, myHead["x"] + 2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 0)
-    print("RiskUp 1 = {}".format(riskUp))
+    #print("RiskUp 1 = {}".format(riskUp))
     #check this
     riskUp1 = count_empty(0, myHead["y"], myHead["x"], myHead["y"] -1, snakeCoords, myTailCoord, snake_tails, snake_heads, 1)
-    print("RiskUp 2 = {}".format(riskUp1))
+    #print("RiskUp 2 = {}".format(riskUp1))
 
     riskUp2 = 0
     if (myHead["y"] <= 2):
@@ -313,11 +320,11 @@ def move():
     tup = ('up', riskUp + riskUp1 + riskUp2)
     riskyMoves.append(tup)
     
-    print("RISK DOWN")
+    #print("RISK DOWN")
     riskDown = check_risk((myHead["y"]) + 1, myHead["y"] + 4, myHead["x"] - 2, myHead["x"] + 2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 0)
-    print("RiskDown 1 = {}".format(riskDown))
+    #print("RiskDown 1 = {}".format(riskDown))
     riskDown1 = count_empty(myHead["y"] + 1, height, myHead["x"], height - myHead["y"] - 1, snakeCoords, myTailCoord, snake_tails, snake_heads, 1)
-    print("RiskDown 2 = {}".format(riskDown1))
+    #print("RiskDown 2 = {}".format(riskDown1))
 
     riskDown2 = 0
     if (myHead["y"] > height - 3):
@@ -326,11 +333,11 @@ def move():
     tup = ('down', riskDown + riskDown1 + riskDown2)
     riskyMoves.append(tup)
     
-    print("RISK LEFT")
+    #print("RISK LEFT")
     riskLeft = check_risk(myHead["x"] - 4, myHead["x"] - 1, myHead["y"]-2, myHead["y"]+2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 1)
-    print("RiskLeft 1 = {}".format(riskLeft))
+    #print("RiskLeft 1 = {}".format(riskLeft))
     riskLeft1 = count_empty(0, myHead["x"] - 1, myHead["y"], myHead["x"], snakeCoords, myTailCoord, snake_tails, snake_heads, 0) 
-    print("RiskLeft 2 = {}".format(riskLeft1))
+    #print("RiskLeft 2 = {}".format(riskLeft1))
 
     riskLeft2 = 0
     if (myHead["x"] <= 2):
@@ -339,11 +346,11 @@ def move():
     tup = ('left', riskLeft + riskLeft1 + riskLeft2)
     riskyMoves.append(tup)
     
-    print("RISK RIGHT")
+    #print("RISK RIGHT")
     riskRight = check_risk(myHead["x"] + 1, myHead["x"] + 4, myHead["y"]-2, myHead["y"]+2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 1)
-    print("RiskRight 1 = {}".format(riskRight))
+    #print("RiskRight 1 = {}".format(riskRight))
     riskRight1 = count_empty(myHead["x"] + 1, width, myHead["y"], width - myHead["x"] - 1, snakeCoords, myTailCoord, snake_tails, snake_heads, 0)
-    print("RiskRight 2 = {}".format(riskRight1))
+    #print("RiskRight 2 = {}".format(riskRight1))
 
     riskRight2 = 0
     if (myHead["x"] > width - 3):
@@ -356,6 +363,69 @@ def move():
    
     print("DEBUG: Risky Moves: {}".format(riskyMoves))
 
+    matrixL = [[0 for x in range(width)] for y in range(height)]
+    for x in range(width):
+        for y in range(height):
+            testCoord = (x, y)
+            if (testCoord in snakeCoords):
+                matrixL[x][y] = 's'
+            else:
+                matrixL[x][y] = 'e'
+    
+    matrixR = [[0 for x in range(width)] for y in range(height)]
+    for x in range(width):
+        for y in range(height):
+            testCoord = (x, y)
+            if (testCoord in snakeCoords):
+                matrixR[x][y] = 's'
+            else:
+                matrixR[x][y] = 'e'
+
+    matrixU = [[0 for x in range(width)] for y in range(height)]
+    for x in range(width):
+        for y in range(height):
+            testCoord = (x, y)
+            if (testCoord in snakeCoords):
+                matrixU[x][y] = 's'
+            else:
+                matrixU[x][y] = 'e'
+
+    matrixD = [[0 for x in range(width)] for y in range(height)]
+    for x in range(width):
+        for y in range(height):
+            testCoord = (x, y)
+            if (testCoord in snakeCoords):
+                matrixD[x][y] = 's'
+            else:
+                matrixD[x][y] = 'e'
+
+    #print(matrix)
+    
+    ffMoves = []
+    upFF = 0
+    if (myHead["y"] != 0):
+        upFF = floodfill(matrixU, myHead["x"], myHead["y"] - 1, 0, snakeCoords)
+    ffMoves.append(("up", upFF))
+    
+    downFF = 0
+    if (myHead["y"] !=  height - 1):
+        downFF = floodfill(matrixD, myHead["x"], myHead["y"] + 1, 0, snakeCoords)
+    ffMoves.append(("down", downFF))
+    
+    leftFF = 0
+    if (myHead["x"] != 0):
+        leftFF = floodfill(matrixL, myHead["x"] - 1, myHead["y"], 0, snakeCoords)
+    ffMoves.append(("left", leftFF))
+    
+    rightFF = 0
+    if (myHead["x"] != width - 1):
+        rightFF = floodfill(matrixR, myHead["x"] + 1, myHead["y"], 0, snakeCoords)
+    ffMoves.append(("right", rightFF))
+        
+    ffMoves.sort(key=lambda x: x[1], reverse=True)
+
+    print("DEBUG: FF Moves: {}".format(ffMoves))
+
     # final decision
     direction = None
     
@@ -367,7 +437,7 @@ def move():
                 preferredDirection = pm
                 print("DEBUG: Preferred direction = {}".format(preferredDirection))
                 break
-
+    
     # least risk           
     leastRisk = None
     for lrm in riskyMoves:
@@ -379,20 +449,27 @@ def move():
                 break
 
     pms = -1
-    direction = leastRisk
     if (preferredDirection != None):
         for rrr in riskyMoves:
             if (rrr[0] == preferredDirection):
                 pms = rrr[1]
                 break
-            #<0.2 beats schnake so
-        if ((pms != -1) and (pms < 3)):
-            direction = preferredDirection
-            print("DEBUG: choosing preferred direction: {}".format(direction))
+    
+    threshold = 1
+    if (goGetFood == 1):
+        print("DEBUG: Getting hungry - taking more risk on preferred direction")
+        threshold = 1.1
 
-    #if (myHealth < 20):
-    #    print("Getting hungry - forcing preferred direction")
-    #    direction = preferredDirection
+    if ((pms != -1) and (pms <= threshold)):
+        direction = preferredDirection
+        print("DEBUG: choosing preferred direction: {}".format(direction))
+    else:
+        for ffMove in ffMoves:
+            if ffMove[0] in possibleMoves:
+                if ffMove[0] not in avoidHeadMoves:
+                    direction = ffMove[0]
+                    print("DEBUG: choosing flood fill: {}".format(direction))
+                    break
     
     if direction == None:
         print("DEBUG: No options left - choose RANDOM direction")
@@ -453,9 +530,9 @@ def count_empty(aFrom, aTo, b, total, snakeCoords, myTail, snake_tails, snake_he
         #print("ratio = 0.8-1.2, so set to zero - no risk")
         #ratio = 0
 
-    print ("EmptyCount:{}".format(emptyCount))
-    print ("Total:{}".format(total))
-    print ("Ratio:{}".format(ratio))
+    #print ("EmptyCount:{}".format(emptyCount))
+    #print ("Total:{}".format(total))
+    #print ("Ratio:{}".format(ratio))
 
     return ratio
 
@@ -464,7 +541,7 @@ def check_risk(a1, a2, b1, b2, badCoords, snakeCoords, me, sh, snakes, mode):
     risk = 0
 
     area = abs(a2 - a1) * abs(b2 - b1)
-    print ("Desired Area = {}".format(area))
+    #print ("Desired Area = {}".format(area))
     fakeArea = 0
     for first_loop in range(b1, b2):
         for second_loop in range(a1, a2):
@@ -484,6 +561,27 @@ def check_risk(a1, a2, b1, b2, badCoords, snakeCoords, me, sh, snakes, mode):
     else:
         riskFactor = 0
     return riskFactor
+
+#b is a snake part
+# a is empty
+def floodfill(matrix, x, y, count, snakeCoords):
+    testc = (x,y)
+    if matrix[x][y] == 'e':  
+        matrix[x][y] = ' '
+        #print("Filling coord ={}".format(testc))
+        #recursively invoke flood fill on all surrounding cells:
+        count += 1
+        if x > 0:
+            count = floodfill(matrix, x-1, y, count, snakeCoords)
+        if x < len(matrix[y]) - 1:
+            count = floodfill(matrix, x+1, y, count, snakeCoords)
+        if y > 0:
+            count = floodfill(matrix, x, y-1, count, snakeCoords)
+        if y < len(matrix) - 1:
+            count = floodfill(matrix, x, y+1, count, snakeCoords)
+    #else:
+        #print("Cannot floodfill as coordinate is not empty: {}".format(testc))
+    return count
 
 class CherryPyServer(bottle.ServerAdapter):
     def run(self, handler):
