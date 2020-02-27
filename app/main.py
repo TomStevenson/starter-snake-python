@@ -49,7 +49,7 @@ def start():
 
 def get_food_list(snake_head, data):
     food_list = data.get('food')
-    print(food_list)
+    #print(food_list)
     closest = []
     last_score = 999999
     l = []
@@ -64,10 +64,10 @@ def get_food_list(snake_head, data):
         if current_score < last_score:
             closest = current_food
             last_score = current_score
-            print("Closest food = {}".format(closest))
-            print("Score = {}".format(last_score))
+            #print("Closest food = {}".format(closest))
+            #print("Score = {}".format(last_score))
     l.append(closest)
-    print(closest) 
+    #print(closest) 
     return l
 
 def get_first_common_element(x,y):
@@ -167,13 +167,10 @@ def move():
 
     myHead = myHead1
     
-    healthThreshold = 20
-    if (amountOfFood < 10):
-        healthThreshold = 75
-    elif (amountOfFood < 5):
-        healthThreshold = 100
 
+    healthThreshold = 50
     goGetFood = 0
+
     if ((myHealth < healthThreshold) or (longer_snake == True)) :
         print("DEBUG: Go get food")
         if (myHealth < healthThreshold):
@@ -185,6 +182,7 @@ def move():
         attack = 1 
     elif (myHead == myTail):
         print("DEBUG: starting conditions - get food")
+        goGetFood = 1
     else:
         print("DEBUG: Chase my tail")
         first_food["x"] = myTail["x"]
@@ -458,8 +456,9 @@ def move():
     threshold = 1
     if (goGetFood == 1):
         print("DEBUG: Getting hungry - taking more risk on preferred direction")
-        threshold = 1.1
+        threshold = 1.3
 
+    ffDirection = None
     if ((pms != -1) and (pms <= threshold)):
         direction = preferredDirection
         print("DEBUG: choosing preferred direction: {}".format(direction))
@@ -467,10 +466,16 @@ def move():
         for ffMove in ffMoves:
             if ffMove[0] in possibleMoves:
                 if ffMove[0] not in avoidHeadMoves:
-                    direction = ffMove[0]
-                    print("DEBUG: choosing flood fill: {}".format(direction))
+                    ffDirection = ffMove[0]
+                    print("DEBUG: flood fill: {}".format(ffDirection))
+                    direction = ffDirection
                     break
     
+    if ((pms <= threshold) and (ffDirection != None)):
+        direction = leastRisk
+        print("DEBUG: we have 2 options - making the hard decision of least risk")
+    
+
     if direction == None:
         print("DEBUG: No options left - choose RANDOM direction")
         direction = random.choice(["left", "right", "up", "down"])
