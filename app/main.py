@@ -124,6 +124,12 @@ def move():
         bad = (width + 1, y)
         badCoords.append(bad)
 
+    mySize = len(data["you"]["body"])
+    myTail = data["you"]["body"][mySize-1]
+
+    # get coordinates of our snake head
+    myHealth = data["you"]["health"]
+
     snake_heads = []
     snake_tails = []
     # snake bodies
@@ -141,6 +147,8 @@ def move():
             snake_tails.append(temp)
         for xycoord in snake["body"]:
             bad = (xycoord["x"], xycoord["y"])
+            #mt = (myTail["x"], myTail["y"])
+            #if (bad != mt):
             snakeCoords.append(bad)
         if (snake != data["you"] and (len(snake["body"]) < shortest_length)):
             print("DEBUG: Found a shorter snake")
@@ -158,17 +166,15 @@ def move():
     amountOfFood = len(sorted_list)
     first_food = sorted_list[0]
     # print("DEBUG: first food={}".format(first_food))
-    
-    mySize = len(data["you"]["body"])
-    myTail = data["you"]["body"][mySize-1]
-
-    # get coordinates of our snake head
-    myHealth = data["you"]["health"]
 
     myHead = myHead1
     
 
-    healthThreshold = 50
+    #healthThreshold = 80
+    # works well on 11x11 !
+    #healthThreshold = 95
+    healthThreshold = 100
+
     goGetFood = 0
 
     if ((myHealth < healthThreshold) or (longer_snake == True)) :
@@ -313,7 +319,7 @@ def move():
 
     riskUp2 = 0
     if (myHead["y"] <= 2):
-        riskUp2 += 0.5
+        riskUp2 += 0.1
 
     tup = ('up', riskUp + riskUp1 + riskUp2)
     riskyMoves.append(tup)
@@ -326,7 +332,7 @@ def move():
 
     riskDown2 = 0
     if (myHead["y"] > height - 3):
-        riskDown2 += 0.5
+        riskDown2 += 0.1
 
     tup = ('down', riskDown + riskDown1 + riskDown2)
     riskyMoves.append(tup)
@@ -334,12 +340,12 @@ def move():
     #print("RISK LEFT")
     riskLeft = check_risk(myHead["x"] - 4, myHead["x"] - 1, myHead["y"]-2, myHead["y"]+2, badCoords, snakeCoords, data["you"]["body"], snake_heads, snakes, 1)
     #print("RiskLeft 1 = {}".format(riskLeft))
-    riskLeft1 = count_empty(0, myHead["x"] - 1, myHead["y"], myHead["x"], snakeCoords, myTailCoord, snake_tails, snake_heads, 0) 
+    riskLeft1 = count_empty(0, myHead["x"] - 1, myHead["y"], myHead["x"] - 1, snakeCoords, myTailCoord, snake_tails, snake_heads, 0) 
     #print("RiskLeft 2 = {}".format(riskLeft1))
 
     riskLeft2 = 0
     if (myHead["x"] <= 2):
-        riskLeft2 += 0.5
+        riskLeft2 += 0.1
 
     tup = ('left', riskLeft + riskLeft1 + riskLeft2)
     riskyMoves.append(tup)
@@ -352,7 +358,7 @@ def move():
 
     riskRight2 = 0
     if (myHead["x"] > width - 3):
-        riskRight2 += 0.5
+        riskRight2 += 0.1
 
     tup = ('right', riskRight + riskRight1 + riskRight2)
     riskyMoves.append(tup)
@@ -426,6 +432,25 @@ def move():
 
     # final decision
     direction = None
+     
+    threshold = 0.8
+    threshold2 = mySize
+    dir = None
+    aggregatedRisk = []
+    for ff in ffMoves:
+        dir = ff[0]
+        agg = (width*height) - ff[1]
+        for rm in riskyMoves:
+            if (dir == rm[0]):
+                agg = agg + rm[1]
+        ggg = (ff[0], agg)
+        aggregatedRisk.append(ggg)
+
+    aggregatedRisk.sort(key=lambda x: x[1])    
+    print("DEBUG: Aggregated risk: {}".format(aggregatedRisk))
+
+    # final decision
+    direction = None
     
     # preferredMove
     preferredDirection = None
@@ -453,11 +478,7 @@ def move():
                 pms = rrr[1]
                 break
     
-    threshold = 1
-    if (goGetFood == 1):
-        print("DEBUG: Getting hungry - taking more risk on preferred direction")
-        threshold = 1.3
-
+    threshold = 1.3
     ffDirection = None
     if ((pms != -1) and (pms <= threshold)):
         direction = preferredDirection
@@ -472,9 +493,20 @@ def move():
                     break
     
     if ((pms <= threshold) and (ffDirection != None)):
-        direction = leastRisk
-        print("DEBUG: we have 2 options - making the hard decision of least risk")
-    
+        print("DEBUG: we have 2 options - making the hard decision")
+        for ffMove in ffMoves:
+            if (ffMove[0] in possibleMoves):
+                if(ffMove[0] not in avoidHeadMoves):
+                    direction = ffMove[0]
+                    print("DEBUG: selecting lowest ff = {}".format(direction))
+                    break
+            else:
+                direction = leastRisk
+
+    if direction == None:
+        for pm in possibleMoves:
+            direction = pm[0]
+            print("DEBUG: No options left - choose first possible move")
 
     if direction == None:
         print("DEBUG: No options left - choose RANDOM direction")
@@ -497,10 +529,6 @@ def end():
 
     return end_response()
 
-#riskUp = check_risk(0, int(myHead["y"]) - 1, myHead["x"] - 2, myHead["x"] + 2, badCoords, snakeCoords)
-#riskLeft = check_risk1(0, int(myHead["x"] - 1), int(myHead["y"]-2), int(myHead["y"]+2), badCoords, snakeCoords)
-#count_empty(int(myHead["y"]), 0, myHead["x"], height, snakeCoords)
-#UP count_empty(int(myHead["y"]), 0, myHead["x"], height, snakeCoords, myTailCoord, 1)
 def count_empty(aFrom, aTo, b, total, snakeCoords, myTail, snake_tails, snake_heads, mode):
     emptyCount = 0
     #print("DEBUG RISK 1")
@@ -541,7 +569,6 @@ def count_empty(aFrom, aTo, b, total, snakeCoords, myTail, snake_tails, snake_he
 
     return ratio
 
-
 def check_risk(a1, a2, b1, b2, badCoords, snakeCoords, me, sh, snakes, mode):
     risk = 0
 
@@ -556,11 +583,16 @@ def check_risk(a1, a2, b1, b2, badCoords, snakeCoords, me, sh, snakes, mode):
             else:
                 testCoord = (first_loop, second_loop)
             if (testCoord in snakeCoords):
-                    risk += 1
-                    #print("DEBUG: +1 to risk - other snake")
+                risk += 1
+                for snake in snakes:
+                    temp = (snake["body"][0]["x"], snake["body"][0]["y"])
+                    if (temp == testCoord):
+                        otherSnakeSize = len(snake["body"])
+                        if (len(me) < otherSnakeSize):
+                            risk += 5
+                            #print("DEBUG: +5 to risk - bigger snake head !")
     if (risk > 0):
         riskFactor = risk / fakeArea
-        riskFactor = riskFactor
         #if (riskFactor < 0.1):
             #riskFactor = 0
     else:
