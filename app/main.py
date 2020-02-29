@@ -42,7 +42,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#4f7942"
+    color = "#64F83C"
 
     return start_response(color)
 
@@ -405,6 +405,7 @@ def move():
 
     #print(matrix)
     
+    snakeCoords.remove((myTail["x"], myTail["y"]))
     ffMoves = []
     upFF = 0
     if (myHead["y"] != 0):
@@ -432,7 +433,17 @@ def move():
 
     # final decision
     direction = None
-     
+
+    lowestFF = 0
+    if (len(possibleMoves) > 1):
+        for ff in ffMoves:
+            if (ff[1] <= mySize - 1):
+                if (lowestFF != [ff[1]]):
+                    lowestFF = ff[1]
+                    if ff[0] in possibleMoves:
+                        possibleMoves.remove(ff[0])
+                        print("DEBUG: Removing from Possible Moves = {}".format(ff[0]))
+
     threshold = 0.8
     threshold2 = mySize
     dir = None
@@ -460,7 +471,7 @@ def move():
                 preferredDirection = pm
                 print("DEBUG: Preferred direction = {}".format(preferredDirection))
                 break
-    
+
     # least risk           
     leastRisk = None
     for lrm in riskyMoves:
@@ -469,6 +480,8 @@ def move():
                 leastRisk = lrm[0]
                 leastRiskScore = lrm[1]
                 print("DEBUG: least risk move: {}".format(leastRisk))
+                #TOM
+                direction = leastRisk
                 break
 
     pms = -1
@@ -477,29 +490,29 @@ def move():
             if (rrr[0] == preferredDirection):
                 pms = rrr[1]
                 break
-    
-    threshold = 1.3
+    #TOM
+    #threshold = 1.3
+    threshold = 1.0
     ffDirection = None
     if ((pms != -1) and (pms <= threshold)):
         direction = preferredDirection
         print("DEBUG: choosing preferred direction: {}".format(direction))
     else:
         for ffMove in ffMoves:
-            if ffMove[0] in possibleMoves:
+            if ffMove in possibleMoves:
                 if ffMove[0] not in avoidHeadMoves:
                     ffDirection = ffMove[0]
                     print("DEBUG: flood fill: {}".format(ffDirection))
                     direction = ffDirection
                     break
     
-    if ((pms <= threshold) and (ffDirection != None)):
+    if ((pms <= threshold) and (direction == None)):
         print("DEBUG: we have 2 options - making the hard decision")
         for ffMove in ffMoves:
-            if (ffMove[0] in possibleMoves):
-                if(ffMove[0] not in avoidHeadMoves):
-                    direction = ffMove[0]
-                    print("DEBUG: selecting lowest ff = {}".format(direction))
-                    break
+            if(ffMove[0] not in avoidHeadMoves):
+                direction = ffMove[0]
+                print("DEBUG: selecting lowest ff = {}".format(direction))
+                break
             else:
                 direction = leastRisk
 
@@ -528,6 +541,7 @@ def end():
     print(json.dumps(data))
 
     return end_response()
+
 
 def count_empty(aFrom, aTo, b, total, snakeCoords, myTail, snake_tails, snake_heads, mode):
     emptyCount = 0
@@ -583,14 +597,17 @@ def check_risk(a1, a2, b1, b2, badCoords, snakeCoords, me, sh, snakes, mode):
             else:
                 testCoord = (first_loop, second_loop)
             if (testCoord in snakeCoords):
-                risk += 1
+                if (testCoord in me):
+                    risk += 0.5
+                else:
+                    risk += 1
                 for snake in snakes:
                     temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                     if (temp == testCoord):
                         otherSnakeSize = len(snake["body"])
                         if (len(me) < otherSnakeSize):
                             risk += 5
-                            #print("DEBUG: +5 to risk - bigger snake head !")
+                            print("DEBUG: +5 to risk - bigger snake head !")
     if (risk > 0):
         riskFactor = risk / fakeArea
         #if (riskFactor < 0.1):
