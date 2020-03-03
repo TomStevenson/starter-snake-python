@@ -433,9 +433,10 @@ def make_decision(preferred_moves, last_ditch_possible_moves, risk_moves, ff_mov
         least_risk_direction = lrm[0]
         print("DEBUG: least risk move: {}".format(least_risk_direction))
         # test to make sure my snake can fit via flood fill in that direction
-        direction = check_ff_size(least_risk_direction, ff_moves, my_size)
-        if (direction != None):
+        least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
+        if (least_risk_direction != None):
             # snake fits - we can stop looking
+            direction = least_risk_direction
             break
 
     # obtain the lowest risk score of the preferred move options
