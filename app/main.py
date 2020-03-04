@@ -399,9 +399,10 @@ def check_ff_size(direction, ff_moves, my_size):
     ff_size = get_ff_size(direction, ff_moves)
     if (ff_size >= my_size):
         new_direction = direction
-        print("DEBUG: choosing preferred direction: {}".format(new_direction))
+        print("DEBUG: choosing supplied direction: {}".format(new_direction))
         if (ff_size < 2*my_size):
             print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
+            direction = None
     else:
         print("DEBUG: Floodfill size in preferred direction too small: {}".format(direction))
         new_direction = None
@@ -436,6 +437,7 @@ def make_decision(preferred_moves, last_ditch_possible_moves, risk_moves, ff_mov
         least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
         if (least_risk_direction != None):
             # snake fits - we can stop looking
+            print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
             direction = least_risk_direction
             break
 
@@ -449,7 +451,10 @@ def make_decision(preferred_moves, last_ditch_possible_moves, risk_moves, ff_mov
 
     # if the risk score is acceptably low, check that the flood fill is compatible
     if ((lowest_risk_score != -1) and (lowest_risk_score <= threshold)):
-        direction = check_ff_size(preferred_direction, ff_moves, my_size)
+        print("DEBUG: risk score is acceptably low to choose preferred direction: {}".format(lowest_risk_score))
+        temp_direction = check_ff_size(preferred_direction, ff_moves, my_size)
+        if (temp_direction == preferred_direction):
+            direction = temp_direction
     
     # if direction has not yet been set, take the highest empty flood fill option
     if (direction == None):
@@ -459,6 +464,13 @@ def make_decision(preferred_moves, last_ditch_possible_moves, risk_moves, ff_mov
                 print("DEBUG: selecting lowest ff = {}".format(direction))
                 break
     
+    # almost last ditch - move to the area with best chance of survival
+    if (direction == None):
+        for ffm in ff_moves:
+            direction = ffm[0]
+            print("DEBUG: Picking direction with best survival chance = {}".format(direction))
+            break
+
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
         for ldm in last_ditch_possible_moves:
