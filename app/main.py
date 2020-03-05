@@ -118,6 +118,16 @@ def get_snake_array(index, data):
             snake_array.append(temp)
     return snake_array
 
+# populate_food builds and returns an array of all food on the board
+# data: json structure provided
+# returns: array of all food on the board
+def populate_food(data):
+    food_coords= []
+    for food in data["board"]["food"]:
+        f = (food["x"], food["y"])
+        food_coords.append(f)
+    return food_coords
+
 # populate_snake_coords builds and returns an array of all snake coords on the board
 # data: json structure provided
 # returns: array of all snake coords on the board
@@ -308,7 +318,7 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                         otherSnakeSize = len(snake["body"])
                         if (len(me) < otherSnakeSize):
                             risk += 5
-                            print("DEBUG: +5 to risk - bigger snake head !")
+                            print("DEBUG: +5 to risk - bigger snake head !")  
     if (risk > 0):
         risk_factor = risk / fake_area
     else:
@@ -324,32 +334,59 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
 # returns: tuple of move direction and risk score
 def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, data, width, height):
     snakes = data["board"]["snakes"]
+    risk_area = 0
+    sv = 0
+    prox = 0
     tup = None
+    
     if (move in possible_moves):
         mode = 1
         if ((move == "left") or move == "right"): 
             mode = 0
-        risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
-        scan = scan_matrix(build_matrix(width, height, snake_coords), width, height, possible_moves, get_snake_array(0, data))
-        sv = 0
+        risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)    
+        my_size = len(data["you"]["body"])
+        my_tail = data["you"]["body"][my_size-1]
+        scan = scan_matrix(build_matrix(width, height, data, snake_coords, my_tail), width, height, possible_moves, get_snake_array(0, data))
         for s in scan:
             if (s[0] == move):
                 sv = s[1]
                 break
-        tup = (move, risk_area + sv)
+
+    #prox_factor = 1
+    #my_head = data["you"]["body"][0]
+    #if (move == "left"):
+    #    if (my_head["x"] < 2):
+    #        prox += prox_factor
+    #if (move == "right"):
+    #    if (my_head["x"] > width - 2):
+    #        prox += prox_factor
+    #if (move == "up"):
+    #    if (my_head["y"] < 2):
+    #        prox += prox_factor
+    #if (move == "down"):
+    #    if (my_head["y"] < height - 2):
+    #        prox += prox_factor
+    #if (prox_factor > 0):
+    #    print("DEBUG: adding wall proximity factor to risk")
+        
+    tup = (move, (risk_area + sv + prox))
     return tup
 
 # build_matrix: builds a matrix populated with the whereabouts of the snakes
 # width/height: size of the matrix
 # snake_coords: array of all snake coords on the board
 # returns: a matrix with 's' where a snake part exists, and 'e' where none exists
-def build_matrix(width, height, snake_coords):
+def build_matrix(width, height, data, snake_coords, my_tail):
+    food = populate_food(data)
     matrix = [[0 for x in range(width)] for y in range(height)]
     for x in range(width):
         for y in range(height):
             testCoord = (x, y)
-            if (testCoord in snake_coords):
+            tail = (my_tail["x"], my_tail["y"])
+            if ((testCoord in snake_coords) and (testCoord != tail)):
                 matrix[x][y] = 's'
+            elif (testCoord in food):
+                matrix[x][y] = 'f'
             else:
                 matrix[x][y] = 'e'
     return matrix
@@ -403,6 +440,10 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads):
 # snake_coords: array of all snake part locations
 # returns: count of all empty squares on flood fill
 def floodfill_algorithm(matrix, x, y, count, snake_coords):
+    if matrix[x][y] == 'f':
+        # convert the food to empty and subtract a count since we will grow
+        matrix[x][y] = 'e'
+        count -= 1
     if matrix[x][y] == 'e':  
         matrix[x][y] = ' '
         count += 1
@@ -417,10 +458,10 @@ def floodfill_algorithm(matrix, x, y, count, snake_coords):
     return count
 
 # build_floodfill_move: helper function to call floodfill algorithm
-def build_floodfill_move(width, height, snake_coords, x, y, test1, test2):
+def build_floodfill_move(width, height, data, snake_coords, my_tail, x, y, test1, test2):
     ff = 0
     if (test1 != test2):
-        ff = floodfill_algorithm(build_matrix(width, height, snake_coords), x, y, 0, snake_coords)
+        ff = floodfill_algorithm(build_matrix(width, height, data, snake_coords, my_tail), x, y, 0, snake_coords)
     return ff
 
 # get_ff_size: helper function to get risk score for provided direction
@@ -443,12 +484,13 @@ def get_ff_size(direction, ff_moves):
 def check_ff_size(direction, ff_moves, my_size):
     new_direction = None
     ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size >= my_size):
-        new_direction = direction
-        print("DEBUG: choosing supplied direction: {}".format(new_direction))
-        if (ff_size < 2*my_size):
-            print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
-            direction = None
+    if (ff_size != None):
+        if (ff_size >= my_size):
+            new_direction = direction
+            print("DEBUG: choosing supplied direction: {}".format(new_direction))
+            if (ff_size < 2*my_size):
+                print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
+                direction = None
     else:
         print("DEBUG: Floodfill size in preferred direction too small: {}".format(direction))
         new_direction = None
@@ -463,7 +505,7 @@ def check_ff_size(direction, ff_moves, my_size):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads):
     # final decision
-    threshold = 1.2 # was 0.5
+    threshold = 1.2
     direction = None
     
     # preferred direction
@@ -623,18 +665,18 @@ def move():
     # build array of sizes of empty squares in flood fill of all four directions
     ff_moves = []
     if ("up" in possible_moves):
-        ff_moves.append(("up", build_floodfill_move(width, height, snake_coords, my_head["x"], my_head["y"] - 1, my_head["y"], 0)))
+        ff_moves.append(("up", build_floodfill_move(width, height, data, snake_coords, my_tail, my_head["x"], my_head["y"] - 1, my_head["y"], 0)))
     if ("down" in possible_moves):
-        ff_moves.append(("down", build_floodfill_move(width, height, snake_coords, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)))
+        ff_moves.append(("down", build_floodfill_move(width, height, data, snake_coords, my_tail, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)))
     if ("left" in possible_moves):
-        ff_moves.append(("left", build_floodfill_move(width, height, snake_coords, my_head["x"] - 1, my_head["y"], my_head["x"], 0)))
+        ff_moves.append(("left", build_floodfill_move(width, height, data, snake_coords, my_tail, my_head["x"] - 1, my_head["y"], my_head["x"], 0)))
     if ("right" in possible_moves):
-        ff_moves.append(("right", build_floodfill_move(width, height, snake_coords, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)))        
+        ff_moves.append(("right", build_floodfill_move(width, height, data, snake_coords, my_tail, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
     print("DEBUG: FF Moves: {}".format(ff_moves))
 
     # final decision
-    m = build_matrix(width, height, snake_coords)
+    m = build_matrix(width, height, data, snake_coords, my_tail)
     direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads)
 
     return move_response(direction)
