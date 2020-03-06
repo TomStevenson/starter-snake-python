@@ -463,7 +463,7 @@ def check_ff_size(direction, ff_moves, my_size):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads):
     # final decision
-    threshold = 1.1 # was 0.5
+    threshold = 1.3 # was 0.5
     direction = None
     
     # preferred direction
