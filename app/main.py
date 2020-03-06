@@ -158,8 +158,10 @@ def is_there_a_longer_snake(data):
 # bad_coords: array of bad coordinates
 # snake_coords: array of all snake parts
 # returns: array of all possible moves
-def get_possible_moves(my_head, bad_coords, snake_coords):
+def get_possible_moves(my_head, my_tail, bad_coords, snake_coords):
     possible_moves = []
+    tail = (my_tail["x"], my_tail["y"])
+    snake_coords.remove(tail)
     # left
     coord = (my_head["x"] -1 , my_head["y"])
     if ((coord not in bad_coords) and (coord not in snake_coords)):
@@ -466,7 +468,7 @@ def check_ff_size(direction, ff_moves, my_size):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads):
     # final decision
-    threshold = 1.2
+    threshold = 1.19
     direction = None
     
     # preferred direction
@@ -501,6 +503,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (rm[0] == preferred_direction):
                 lowest_risk_score = rm[1]
                 break
+    else:
+        print("DEBUG: no preferred direction, so we want best ff option")
+        direction = None
 
     # if the risk score is acceptably low, check that the flood fill is compatible
     if ((lowest_risk_score != -1) and (lowest_risk_score <= threshold)):
@@ -594,7 +599,7 @@ def move():
         target["y"] = my_tail["y"]
 
     # determine possible moves - remove any entries where we need to avoid snake heads
-    possible_moves = get_possible_moves(my_head, bad_coords, snake_coords)
+    possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
     last_ditch_possible_moves = possible_moves
     avoid_heads = get_snake_heads_to_avoid(my_head, snake_heads, data)
     for ah in avoid_heads:
