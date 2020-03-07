@@ -309,8 +309,8 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                     if (temp == test_coord):
                         otherSnakeSize = len(snake["body"])
                         if (len(me) < otherSnakeSize):
-                            risk += 4
-                            print("DEBUG: +6 to risk - bigger snake head !")
+                            risk += 5
+                            print("DEBUG: +5 to risk - bigger snake head !")
     if (risk > 0):
         risk_factor = risk / fake_area
     else:
@@ -369,22 +369,22 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads):
             test = (x, y)
             if ((x <= (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    left += 4
+                    left += 5
                 else:
                     left += 1
             if ((y > (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    down += 4
+                    down += 5
                 else:
                     down += 1
             if ((y <= (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    up += 4
+                    up += 5
                 else:
                     up += 1
             if ((x > (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    right += 4
+                    right += 5
                 else:
                     right += 1
     retval = []
