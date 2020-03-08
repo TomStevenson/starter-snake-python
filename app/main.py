@@ -333,7 +333,10 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                 test_coord = (second_loop, first_loop)
             
             if (test_coord in snake_coords):
-                risk += 1
+                if (test_coord not in me):
+                    risk += 1
+                else:
+                    risk += 0.75
                 for snake in snakes:
                     temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                     if (temp == test_coord):
@@ -356,6 +359,7 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
 # returns: tuple of move direction and risk score
 def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, data, width, height):
     snakes = data["board"]["snakes"]
+    print("DEBUG: Check risky business: {}".format(move))
     tup = None
     if (move in possible_moves):
         mode = 1
@@ -376,6 +380,8 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
             position = data["you"]["body"][0]["x"] + 1
         mid_point = round(length, 0) - 1
         first_calc = abs(position - mid_point)
+        print(position)
+        print(mid_point)
         prox_to_edge = round(first_calc / length, 1)
         print("prox to edge: {}".format(prox_to_edge))
 
@@ -593,10 +599,8 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
-        for rm in risk_moves:
-            direction = rm[0]
-            print("DEBUG: Almost last ditch - least risk = {}".format(direction))
-            break
+        direction = get_first_common_element(ff_moves, last_ditch_possible_moves)
+        print("DEBUG: Almost last ditch - least risk = {}".format(direction))
 
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
