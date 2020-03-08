@@ -529,16 +529,17 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #threshold = 1.19
     #threshold = 1.23
 
+
     snakes = data["board"]["snakes"]
     num_snakes = len(snakes)
-
-    if (num_snakes > 2):
+    my_health = data["you"]["health"]
+    if ((num_snakes == 2) or (my_health <= 25)):
+        print("Num snakes = 2 , aggressive or hungry")
+        threshold = 1.19
+    else:
         print("Num snakes > 2 , defensive")
         threshold = 0.45
-    else:
-        print("Num snakes = 2 , aggressive")
-        threshold = 1.19
-
+    
     direction = None
     
     my_head = data["you"]["body"][0]  
