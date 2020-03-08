@@ -525,7 +525,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     # final decision
     #threshold = 1.19
     #threshold = 1.23
-    threshold = 0.95
+    threshold = 1.19
     direction = None
     
     my_head = data["you"]["body"][0]  
@@ -656,7 +656,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 10
+    health_threshold = 25
     if ((my_head == my_tail) or (longer_snake == True) or (my_health <= health_threshold)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
