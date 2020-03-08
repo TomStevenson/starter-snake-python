@@ -333,10 +333,7 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                 test_coord = (second_loop, first_loop)
             
             if (test_coord in snake_coords):
-                if (test_coord not in me):
-                    risk += 1
-                else:
-                    risk += 0.75
+                risk += 1
                 for snake in snakes:
                     temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                     if (temp == test_coord):
@@ -368,22 +365,22 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
         risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
         scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data))
         
-        mid_point = 0
+        #mid_point = 0
         prox_to_edge = 1
-        length = 0
-        position = 0
-        if (mode == 1):
-            length = height
-            position = data["you"]["body"][0]["x"] + 1
-        else:
-            length = width
-            position = data["you"]["body"][0]["x"] + 1
-        mid_point = round(length, 0) - 1
-        first_calc = abs(position - mid_point)
-        print(position)
-        print(mid_point)
-        prox_to_edge = round(first_calc / length, 1)
-        print("prox to edge: {}".format(prox_to_edge))
+        #length = 0
+        #position = 0
+        #if (mode == 1):
+        #    length = height
+        #    position = data["you"]["body"][0]["x"] + 1
+        #else:
+        #    length = width
+        #    position = data["you"]["body"][0]["x"] + 1
+        #mid_point = round(length, 0) - 1
+        #first_calc = abs(position - mid_point)
+        #print(position)
+        #print(mid_point)
+        #prox_to_edge = round(first_calc / length, 1)
+        #print("prox to edge: {}".format(prox_to_edge))
 
         sv = 0
         for s in scan:
@@ -531,7 +528,17 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     # final decision
     #threshold = 1.19
     #threshold = 1.23
-    threshold = 1.19
+
+    snakes = data["board"]["snakes"]
+    num_snakes = len(snakes)
+
+    if (num_snakes > 2):
+        print("Num snakes > 2 , defensive")
+        threshold = 0.45
+    else:
+        print("Num snakes = 2 , aggressive")
+        threshold = 1.19
+
     direction = None
     
     my_head = data["you"]["body"][0]  
