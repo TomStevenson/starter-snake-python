@@ -527,6 +527,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (direction != None):
                 print("DEBUG: selecting lowest ff = {}".format(direction))
                 break
+
+    # almost last ditch - move to the area with best chance of survival	
+    if (direction == None):	
+        direction = get_first_common_element(ff_moves, last_ditch_possible_moves)	
+        print("DEBUG: Almost last ditch - least risk = {}".format(direction))
     
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
