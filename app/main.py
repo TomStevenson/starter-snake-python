@@ -175,11 +175,11 @@ def get_shortest_snake(data):
 # data: json structure provided
 # returns: True if there is a longer snake than me on the board, False otherwise
 def is_there_a_longer_snake(data):
-    longer_snake = False
+    longer_snake = None
     for snake in data["board"]["snakes"]:
         if (snake != data["you"] and (len(snake["body"]) >= (len(data["you"]["body"]) - 1))):
             print("DEBUG: Found a longer snake")
-            longer_snake = True
+            longer_snake = snake
             break
     return longer_snake
 
@@ -610,6 +610,7 @@ def move():
     # build list of all snake coordinates on the board
     snakes = data["board"]["snakes"]
     snake_coords = populate_snake_coords(data)
+    num_snakes = len(snakes)
 
     # obtain information about my snake
     my_size = len(data["you"]["body"])
@@ -631,8 +632,8 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 10
-    if ((my_head == my_tail) or (longer_snake == True) or (my_health <= health_threshold)):
+    health_threshold = 25
+    if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
         print("DEBUG: Chase shortest snake")
