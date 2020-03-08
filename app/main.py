@@ -18,6 +18,7 @@ def static(path):
     """
     Given a path, return the static file located relative
     to the static folder.
+
     This can be used to return the snake head URL in an API response.
     """
     return bottle.static_file(path, root='static/')
@@ -71,6 +72,36 @@ def get_first_common_element(x,y):
     # you could simply return None and test return value
     # raise Exception('No common element found')
     return None
+
+def is_snake_longer_than_me(data, snake_head):
+    longer_snake = False
+    for snake in data["board"]["snakes"]:
+        if (snake_head == snake["body"][0]):
+            if (snake != data["you"] and (len(snake["body"]) >= (len(data["you"]["body"]) - 1))):
+                print("DEBUG: Snake is longer than me !")
+                longer_snake = True
+                break
+    return longer_snake
+
+def which_directions_are_away_from_snake_heads(my_head, snake_heads, data):
+    retval = []
+    for sh in snake_heads:
+        if (is_snake_longer_than_me(data, sh)):
+            x = my_head["x"] - sh[0]
+            if (x > 0):
+                if ("right" not in snake_heads):
+                    retval.append("right")
+            if (x < 0):
+                if ("left" not in snake_heads):
+                    retval.append("left")
+            y = my_head["y"] - sh[1]
+            if (y > 0):
+                if ("down" not in snake_heads):
+                    retval.append("down")
+            if (y < 0):
+                if ("up" not in snake_heads):
+                    retval.append("up")
+    return retval
 
 # populate_bad_coords: define perimeter coordinates just outside the board
 # width: width of the board
@@ -230,9 +261,9 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     my_size = len(data["you"]["body"])
     temp = []
     test_areas = []
-    test_areas.append((my_head["x"]-1, my_head["y"]))
-    test_areas.append((my_head["x"]-1, my_head["y"] - 1))
-    test_areas.append((my_head["x"]-1, my_head["y"] + 1))
+    test_areas.append((my_head["x"] - 1, my_head["y"]))
+    test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
+    test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
     test_areas.append((my_head["x"] - 2, my_head["y"]))
     test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
@@ -331,7 +362,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
         if ((move == "left") or move == "right"): 
             mode = 0
         risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
-        scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data))
+        scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data))
         sv = 0
         for s in scan:
             if (s[0] == move):
@@ -345,20 +376,21 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
 # snake_coords: array of all snake coords on the board
 # returns: a matrix with 's' where a snake part exists, and 'e' where none exists
 def build_matrix(width, height, data, snake_coords):
-    my_size = len(data["you"]["body"])
-    my_tail = data["you"]["body"][my_size-1]
+    #my_size = len(data["you"]["body"])
+    #my_tail = data["you"]["body"][my_size-1]
+    snake_tails = get_snake_array(-1, data)
     matrix = [[0 for x in range(width)] for y in range(height)]
     for x in range(width):
         for y in range(height):
             testCoord = (x, y)
-            tail = (my_tail["x"], my_tail["y"])
-            if ((testCoord in snake_coords) and (testCoord != tail)):
+            #tail = (my_tail["x"], my_tail["y"])
+            if ((testCoord in snake_coords) and (testCoord != snake_tails)):
                 matrix[x][y] = 's'
             else:
                 matrix[x][y] = 'e'
     return matrix
 
-def scan_matrix(matrix, width, height, possible_moves, snake_heads):
+def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails):
     left = 0
     right = 0
     up = 0
@@ -369,21 +401,29 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads):
             if ((x <= (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     left += 5
+                elif (test in snake_tails):
+                    left += 0
                 else:
                     left += 1
             if ((y > (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     down += 5
+                elif (test in snake_tails):
+                    down += 0
                 else:
                     down += 1
             if ((y <= (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     up += 5
+                elif (test in snake_tails):
+                    up += 0
                 else:
                     up += 1
             if ((x > (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     right += 5
+                elif (test in snake_tails):
+                    right += 0
                 else:
                     right += 1
     retval = []
@@ -465,17 +505,22 @@ def check_ff_size(direction, ff_moves, my_size):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
     # final decision
     threshold = 1.19
     direction = None
     
+    my_head = data["you"]["body"][0]  
     # preferred direction
     preferred_direction = None
-    for pm in preferred_moves:
-        preferred_direction = pm
-        print("DEBUG: Preferred direction = {}".format(preferred_direction))
-        break
+    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
+    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
+    preferred_direction = get_first_common_element(preferred_moves, away_from_heads)
+    if (preferred_direction == None):
+        for pm in preferred_moves:
+            preferred_direction = pm
+            print("DEBUG: Preferred direction = {}".format(preferred_direction))
+            break
 
     # least risk direction         
     least_risk_direction = None
@@ -493,11 +538,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     height = data["board"]["height"]
     width = data["board"]["width"]
-    scan_risk = scan_matrix(m, width, height, possible_moves, snake_heads)
+    scan_risk = scan_matrix(m, width, height, possible_moves, snake_heads, snake_tails)
 
     # obtain the lowest risk score of the preferred move options
     lowest_risk_score = -1
-    if (preferred_direction != None):
+    if (preferred_direction != None):        
         for rm in risk_moves:
             if (rm[0] == preferred_direction):
                 lowest_risk_score = rm[1]
@@ -527,11 +572,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (direction != None):
                 print("DEBUG: selecting lowest ff = {}".format(direction))
                 break
-
-    # almost last ditch - move to the area with best chance of survival	
-    if (direction == None):	
-        direction = get_first_common_element(ff_moves, last_ditch_possible_moves)	
-        print("DEBUG: Almost last ditch - least risk = {}".format(direction))
     
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
@@ -579,6 +619,7 @@ def move():
 
     # snake bodies
     snake_heads = get_snake_array(0, data)
+    snake_tails = get_snake_array(-1, data)
     # get details on the shortest snake on the board
     shortest_snake = get_shortest_snake(data)
     shortest_length = len(shortest_snake)
@@ -590,7 +631,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 25
+    health_threshold = 10
     if ((my_head == my_tail) or (longer_snake == True) or (my_health <= health_threshold)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
@@ -647,7 +688,7 @@ def move():
 
     # final decision
     m = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails)
 
     return move_response(direction)
 
