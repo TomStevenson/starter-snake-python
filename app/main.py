@@ -507,8 +507,8 @@ def check_ff_size(direction, ff_moves, my_size):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
     # final decision
-    #threshold = 1.19
-    threshold = 0.82 #85
+    threshold = 1.19
+    #threshold = 0.82
     direction = None
     
     my_head = data["you"]["body"][0]  
@@ -660,7 +660,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 35
+    health_threshold = 30
     if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
