@@ -247,7 +247,7 @@ def test_for_snake_head(direction, coords_to_test, snake_heads, data):
                 temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                 if (temp == test):
                     other_snake_size = len(snake["body"])
-                    if (my_size < other_snake_size):
+                    if (my_size <= other_snake_size):
                         heads_to_avoid.append(direction)
                         print("DEBUG: Avoid snake head!")
     return heads_to_avoid
@@ -507,7 +507,8 @@ def check_ff_size(direction, ff_moves, my_size):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
     # final decision
-    threshold = 1.19
+    #threshold = 1.19
+    threshold = 0.82 #85
     direction = None
     
     my_head = data["you"]["body"][0]  
@@ -558,12 +559,37 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         if (temp_direction == preferred_direction):
             direction = temp_direction
     
+    # almost last ditch - move to the area with best chance of survival
     if (direction == None):
-        for sr in scan_risk:
-            direction = check_ff_size(sr[0], ff_moves, my_size)
-            if (direction != None):
-                print("DEBUG: selecting lowest scan risk = {}".format(direction))
+        loop = 0
+        last_score = 0
+        same_count = 0
+
+        for ffm0 in ff_moves:
+            last_score = ffm0[1]
+            break
+
+        for ffm in ff_moves:
+            loop += 1
+            if (last_score == ffm[1]):
+                same_count += 1
+            last_score = ffm[1]
+
+        first_direction = None
+        for ffm2 in ff_moves:
+            if (ffm2[0] in possible_moves):
+                first_direction = ffm2[0]
                 break
+
+        if (loop == same_count):
+            for rm in risk_moves:
+                if (rm[0] in last_ditch_possible_moves):
+                    direction = rm[0]
+                    break
+            print("DEBUG: Flood fill options all have same score.  Direction LR = {}".format(direction))
+        else:
+            direction = first_direction
+            print("DEBUG: Picking direction with highest ff - best survival chance = {}".format(direction))
 
     # if direction has not yet been set, take the highest empty flood fill option
     if (direction == None):
@@ -581,7 +607,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
+
     if (direction == None):
+        print("DEBUG: TOMMMM !!!!!!!!!! Last DITCH Possible Moves={}".format(last_ditch_possible_moves))
         for ldm in last_ditch_possible_moves:
             direction = ldm
             print("DEBUG: No options left - choose last ditch possible move: {}".format(direction))
@@ -646,7 +674,12 @@ def move():
 
     # determine possible moves - remove any entries where we need to avoid snake heads
     possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
-    last_ditch_possible_moves = possible_moves
+    
+    last_ditch_possible_moves = []
+    for pm in possible_moves:
+        last_ditch_possible_moves.append(pm)
+    print("DEBUG: FIRST LAST DITCH={}".format(last_ditch_possible_moves))
+
     avoid_heads = get_snake_heads_to_avoid(my_head, snake_heads, data)
     for ah in avoid_heads:
         if (ah in possible_moves):
@@ -676,13 +709,13 @@ def move():
 
     # build array of sizes of empty squares in flood fill of all four directions
     ff_moves = []
-    if ("up" in possible_moves):
+    if ("up" in last_ditch_possible_moves):
         ff_moves.append(("up", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)))
-    if ("down" in possible_moves):
+    if ("down" in last_ditch_possible_moves):
         ff_moves.append(("down", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)))
-    if ("left" in possible_moves):
+    if ("left" in last_ditch_possible_moves):
         ff_moves.append(("left", build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)))
-    if ("right" in possible_moves):
+    if ("right" in last_ditch_possible_moves):
         ff_moves.append(("right", build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
     print("DEBUG: FF Moves: {}".format(ff_moves))
