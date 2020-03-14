@@ -61,6 +61,13 @@ def get_food_list(snake_head, data):
     l.append(closest)
     return l
 
+def get_common_elements(x,y):
+    retval = []
+    for i in x:
+        if i in y:
+            retval.append(i)
+    return retval
+
 # Fetches first element from x that is common for both lists
 # or return None if no such an element is found.  
 def get_first_common_element(x,y):
@@ -371,6 +378,25 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
         tup = (move, risk_area + sv)
     return tup
 
+def get_directions_of_my_tail(my_head, my_tail, possible_moves):
+    directions = []
+    x = my_head["x"] - my_tail["x"]
+    y = my_head["y"] - my_tail["y"]
+    if (x > 0):
+        if ("left" in possible_moves):
+            directions.append("left")
+    if (x < 0):
+        if ("right" in possible_moves):
+            directions.append("right")
+    if (y > 0):
+        if ("up" in possible_moves):
+            directions.append("up")
+    if (y < 0):
+        if ("down" in possible_moves):
+            directions.append("down")
+    print("DEBUG: directions of my tail: {}".format(directions))
+    return directions
+
 # build_matrix: builds a matrix populated with the whereabouts of the snakes
 # width/height: size of the matrix
 # snake_coords: array of all snake coords on the board
@@ -511,7 +537,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #threshold = 0.82
     direction = None
     
-    my_head = data["you"]["body"][0]  
+    my_head = data["you"]["body"][0]
+    my_size = len(data["you"]["body"])
+    my_tail = data["you"]["body"][my_size-1]
+
     # preferred direction
     preferred_direction = None
     away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
@@ -532,10 +561,18 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         # test to make sure my snake can fit via flood fill in that direction
         least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
         if (least_risk_direction != None):
+            directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
             # snake fits - we can stop looking
             print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
             direction = least_risk_direction
             break
+    if (direction == None):
+        directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
+        if least_risk_direction in directions_of_my_tail:
+            direction = least_risk_direction
+            print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
+
+
 
     height = data["board"]["height"]
     width = data["board"]["width"]
@@ -549,9 +586,18 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 lowest_risk_score = rm[1]
                 break
     else:
-        print("DEBUG: no preferred direction, so we want best ff option")
         direction = None
-
+        directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
+        tom = get_common_elements(directions_of_my_tail, possible_moves)
+        for t in tom:
+            ttt = check_ff_size(t, ff_moves, my_size)
+            if (ttt != None):
+                direction = t
+                print("DEBUG: trying a possible tail move")
+                break
+        if (direction == None):
+            print("DEBUG: no preferred direction, so we want best ff option")
+        
     # if the risk score is acceptably low, check that the flood fill is compatible
     if ((lowest_risk_score != -1) and (lowest_risk_score <= threshold)):
         print("DEBUG: risk score is acceptably low to choose preferred direction: {}".format(lowest_risk_score))
