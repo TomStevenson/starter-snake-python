@@ -64,7 +64,7 @@ def get_food_list(snake_head, data):
 def get_common_elements(x,y):
     retval = []
     for i in x:
-        if i in y:
+        if ((i in y) or (len(y) == 0)):
             retval.append(i)
     return retval
 
