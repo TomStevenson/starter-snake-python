@@ -42,9 +42,29 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#3dcd58"
+    color = "#ff0000"
 
     return start_response(color)
+
+def get_closest_head(snake_head, data):
+    closest = []
+    last_score = 999999
+    l = []
+    for current_food in data["board"]["snakes"]:
+        if (current_food != data["you"] and (len(current_food["body"]) >= (len(data["you"]["body"]) - 1))):
+            current_distance = [99, 99]
+            current_distance[0] = abs(snake_head["x"] - current_food["body"][0]["x"])
+            current_distance[1] = abs(snake_head["y"] - current_food["body"][0]["y"])
+            current_score = current_distance[0] * current_distance[1]
+            if current_score < last_score:
+                closest = current_food["body"][0]
+                last_score = current_score
+    if ((last_score >= 4) and (last_score <= 5) and (last_score != 999999)):
+        l.append(closest)
+        print("DEBUG: Snake risk prevention: {}".format(last_score))
+    else:
+        print("DEBUG: snake is close: {}".format(last_score))
+    return l
 
 def get_food_list(snake_head, data):
     closest = []
@@ -236,7 +256,6 @@ def get_preferred_moves(my_head, target, possible_moves):
     elif target["y"] > my_head["y"]:
         if ("down" in possible_moves):
             preferred_moves.append("down")
-    print("DEBUG: Preferred moves to get us to target: {}".format(preferred_moves))
     return preferred_moves
 
 # test_for_snake_head: checks for other snake heads nearby
@@ -256,7 +275,7 @@ def test_for_snake_head(direction, coords_to_test, snake_heads, data):
                     other_snake_size = len(snake["body"])
                     if (my_size <= other_snake_size):
                         heads_to_avoid.append(direction)
-                        print("DEBUG: Avoid snake head!")
+                        #print("DEBUG: Avoid snake head!")
     return heads_to_avoid
 
 # get_snake_heads_to_avoid: checks for other snake headsin all directions
@@ -531,7 +550,7 @@ def check_ff_size(direction, ff_moves, my_size):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, sh_avoid, my_size, data, m, snake_heads, snake_tails):
     # final decision
     threshold = 1.19
     #threshold = 0.82
@@ -563,14 +582,17 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         if (least_risk_direction != None):
             directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
             # snake fits - we can stop looking
-            print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
-            direction = least_risk_direction
-            break
+            print("DEBUG: snake fits: {}".format(least_risk_direction))
+            if (least_risk_direction not in sh_avoid):
+                print("DEBUG: snake head risk ok: {}".format(least_risk_direction))
+                direction = least_risk_direction
+        break
     if (direction == None):
         directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
         if least_risk_direction in directions_of_my_tail:
-            direction = least_risk_direction
-            print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
+            if least_risk_direction not in sh_avoid:
+                direction = least_risk_direction
+                print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
 
 
 
@@ -603,7 +625,8 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         print("DEBUG: risk score is acceptably low to choose preferred direction: {}".format(lowest_risk_score))
         temp_direction = check_ff_size(preferred_direction, ff_moves, my_size)
         if (temp_direction == preferred_direction):
-            direction = temp_direction
+            if (temp_direction not in sh_avoid):
+                direction = temp_direction
     
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
@@ -705,6 +728,11 @@ def move():
     food_sorted_by_proximity = get_food_list(my_head, data)
     target = food_sorted_by_proximity[0]
     
+    target_snakes = []
+    snake_head_by_proximity = get_closest_head(my_head, data)
+    if (len(snake_head_by_proximity) > 0):
+        target_snakes = snake_head_by_proximity[0]
+
     # specify health threshold to go get food
     health_threshold = 30
     if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
@@ -724,7 +752,12 @@ def move():
     last_ditch_possible_moves = []
     for pm in possible_moves:
         last_ditch_possible_moves.append(pm)
-    print("DEBUG: FIRST LAST DITCH={}".format(last_ditch_possible_moves))
+    print("DEBUG: Last ditch possible moves={}".format(last_ditch_possible_moves))
+
+    sh_avoid = []
+    if (len(snake_head_by_proximity) > 0):
+        sh_avoid = get_preferred_moves(my_head, target_snakes, possible_moves)
+    print("DEBUG: Snake head proximity to avoid: {}".format(sh_avoid))
 
     avoid_heads = get_snake_heads_to_avoid(my_head, snake_heads, data)
     for ah in avoid_heads:
@@ -734,6 +767,8 @@ def move():
 
     # build array of preferred moves to get to target food or enemy
     preferred_moves = get_preferred_moves(my_head, target, possible_moves)
+    print("DEBUG: Preferred moves to get us to target: {}".format(preferred_moves))
+
 
     # build array of directions sorted by risk level
     risk_moves = []
@@ -768,10 +803,9 @@ def move():
 
     # final decision
     m = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, sh_avoid, my_size, data, m, snake_heads, snake_tails)
 
     return move_response(direction)
-
 
 @bottle.post('/end')
 def end():
