@@ -42,7 +42,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#ff0000"
+    color = "#0f0000"
 
     return start_response(color)
 
@@ -129,6 +129,24 @@ def which_directions_are_away_from_snake_heads(my_head, snake_heads, data):
                 if ("up" not in snake_heads):
                     retval.append("up")
     return retval
+
+def test_if_close_to_me(snake_head, data):
+    retval = 0
+    closest = []
+    last_score = 999999
+    l = []
+    me = data["you"]["body"]
+    for xycoord in me:
+        current_distance = [99, 99]
+        current_distance[0] = abs(snake_head["x"] - xycoord["x"])
+        current_distance[1] = abs(snake_head["y"] - xycoord["y"])
+        current_score = current_distance[0] * current_distance[1]
+        if current_score < last_score:
+            closest = xycoord
+            last_score = current_score
+    retval = last_score
+    return retval
+
 
 # populate_bad_coords: define perimeter coordinates just outside the board
 # width: width of the board
@@ -242,21 +260,31 @@ def get_possible_moves(my_head, my_tail, bad_coords, snake_coords):
 # target: target coords - food or smaller snake
 # possible_moves: array of all possible moves
 # returns: array of all preferred moves
-def get_preferred_moves(my_head, target, possible_moves):
+def get_preferred_moves(my_head, target, possible_moves, data):
     preferred_moves = []
+    s = 0
     if target["x"] < my_head["x"]:
         if ("left" in possible_moves):
-            preferred_moves.append("left")
+            s = test_if_close_to_me(target, data)
+            preferred_moves.append(("left", s))
     elif target["x"] > my_head["x"]:
         if ("right" in possible_moves):
-            preferred_moves.append("right")
+            s = test_if_close_to_me(target, data)
+            preferred_moves.append(("right", s))
     if target["y"] < my_head["y"]:
         if ("up" in possible_moves):
-            preferred_moves.append("up")
+            s = test_if_close_to_me(target, data)
+            preferred_moves.append(("up", s))
     elif target["y"] > my_head["y"]:
         if ("down" in possible_moves):
-            preferred_moves.append("down")
-    return preferred_moves
+            s = test_if_close_to_me(target, data)
+            preferred_moves.append(("down", s))
+    preferred_moves.sort(key=lambda x: x[1])
+    print("TOM PM: {}".format(preferred_moves))
+    retval = []
+    for pm in preferred_moves:
+        retval.append(pm[0])
+    return retval
 
 # test_for_snake_head: checks for other snake heads nearby
 # direction: direction to test (left, right, up, down)
@@ -756,7 +784,7 @@ def move():
 
     sh_avoid = []
     if (len(snake_head_by_proximity) > 0):
-        sh_avoid = get_preferred_moves(my_head, target_snakes, possible_moves)
+        sh_avoid = get_preferred_moves(my_head, target_snakes, possible_moves, data)
     print("DEBUG: Snake head proximity to avoid: {}".format(sh_avoid))
 
     avoid_heads = get_snake_heads_to_avoid(my_head, snake_heads, data)
@@ -766,7 +794,7 @@ def move():
     print("DEBUG: Possible Moves={}".format(possible_moves))
 
     # build array of preferred moves to get to target food or enemy
-    preferred_moves = get_preferred_moves(my_head, target, possible_moves)
+    preferred_moves = get_preferred_moves(my_head, target, possible_moves, data)
     print("DEBUG: Preferred moves to get us to target: {}".format(preferred_moves))
 
 
