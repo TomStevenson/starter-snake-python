@@ -345,7 +345,7 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                     temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                     if (temp == test_coord):
                         otherSnakeSize = len(snake["body"])
-                        if (len(me) <= otherSnakeSize):
+                        if (len(me) < otherSnakeSize):
                             risk += 5
                             print("DEBUG: +5 to risk - bigger snake head !")
     if (risk > 0):
@@ -561,7 +561,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         # test to make sure my snake can fit via flood fill in that direction
         least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
         if (least_risk_direction != None):
-            #directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
+            directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
             # snake fits - we can stop looking
             print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
             direction = least_risk_direction
@@ -576,7 +576,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     height = data["board"]["height"]
     width = data["board"]["width"]
-    #scan_risk = scan_matrix(m, width, height, possible_moves, snake_heads, snake_tails)
+    scan_risk = scan_matrix(m, width, height, possible_moves, snake_heads, snake_tails)
 
     # obtain the lowest risk score of the preferred move options
     lowest_risk_score = -1
@@ -586,25 +586,17 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 lowest_risk_score = rm[1]
                 break
     else:
-        last_decision = direction
+        direction = None
         directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-        if (last_decision in directions_of_my_tail):
-            direction = last_decision
-            print("Lowest risk option is also in direction tail - a good bet: {}".format(direction))
-        else:
-            tom = get_common_elements(directions_of_my_tail, possible_moves)
-            for t in tom:
-                ttt = check_ff_size(t, ff_moves, my_size)
-                if (ttt != None):
-                    t_direction = t
-                    for ffm0 in ff_moves:
-                        if (t_direction == ffm0[0]):
-                            if (ffm0[1] <= threshold):
-                                direction = t_direction
-                                print("DEBUG: trying a possible tail move")
-                        break
-            if (direction == None):
-                print("DEBUG: no preferred direction, so we want best ff option")
+        tom = get_common_elements(directions_of_my_tail, possible_moves)
+        for t in tom:
+            ttt = check_ff_size(t, ff_moves, my_size)
+            if (ttt != None):
+                direction = t
+                print("DEBUG: trying a possible tail move")
+                break
+        if (direction == None):
+            print("DEBUG: no preferred direction, so we want best ff option")
         
     # if the risk score is acceptably low, check that the flood fill is compatible
     if ((lowest_risk_score != -1) and (lowest_risk_score <= threshold)):
