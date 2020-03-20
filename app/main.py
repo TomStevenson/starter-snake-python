@@ -368,8 +368,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
         mode = 1
         if ((move == "left") or move == "right"): 
             mode = 0
-        #risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
-        risk_area = 0
+        risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
         scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data))
         sv = 0
         for s in scan:
