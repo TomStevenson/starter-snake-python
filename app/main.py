@@ -42,7 +42,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#3dcd58"
+    color = "#fff000"
 
     return start_response(color)
 
@@ -348,6 +348,8 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                         if (len(me) < otherSnakeSize):
                             risk += 5
                             print("DEBUG: +5 to risk - bigger snake head !")
+    print("DEBUG: risk: {}".format(risk))
+    print("DEBUG: fake_area: {}".format(fake_area))
     if (risk > 0):
         risk_factor = risk / fake_area
     else:
@@ -368,6 +370,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
         mode = 1
         if ((move == "left") or move == "right"): 
             mode = 0
+        print("DEBUG: Risk direction being tested: {}".format(move))
         risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
         scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data))
         sv = 0
@@ -428,28 +431,28 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails)
                 if (test in snake_heads):
                     left += 5
                 elif (test in snake_tails):
-                    left += 0
+                    left -= 5
                 else:
                     left += 1
             if ((y > (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     down += 5
                 elif (test in snake_tails):
-                    down += 0
+                    down -= 5
                 else:
                     down += 1
             if ((y <= (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     up += 5
                 elif (test in snake_tails):
-                    up += 0
+                    up -= 5
                 else:
                     up += 1
             if ((x > (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     right += 5
                 elif (test in snake_tails):
-                    right += 0
+                    right -= 5
                 else:
                     right += 1
     retval = []
@@ -513,7 +516,7 @@ def get_ff_size(direction, ff_moves):
 def check_ff_size(direction, ff_moves, my_size):
     new_direction = None
     ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size >= my_size):
+    if (ff_size*1.25 >= my_size):
         new_direction = direction
         print("DEBUG: choosing supplied direction: {}".format(new_direction))
         if (ff_size < 2*my_size):
@@ -540,6 +543,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     my_head = data["you"]["body"][0]
     my_size = len(data["you"]["body"])
     my_tail = data["you"]["body"][my_size-1]
+    directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
 
     # preferred direction
     preferred_direction = None
@@ -561,23 +565,21 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         # test to make sure my snake can fit via flood fill in that direction
         least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
         if (least_risk_direction != None):
-            directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
             # snake fits - we can stop looking
             print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
             direction = least_risk_direction
             break
-    if (direction == None):
-        directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-        if least_risk_direction in directions_of_my_tail:
-            direction = least_risk_direction
-            print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
 
-
+        
+    #if (direction == None):
+    #    directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
+    #    if least_risk_direction in directions_of_my_tail:
+    #        direction = least_risk_direction
+    #        print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
 
     height = data["board"]["height"]
     width = data["board"]["width"]
-    scan_risk = scan_matrix(m, width, height, possible_moves, snake_heads, snake_tails)
-
+    
     # obtain the lowest risk score of the preferred move options
     lowest_risk_score = -1
     if (preferred_direction != None):        
@@ -585,18 +587,18 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (rm[0] == preferred_direction):
                 lowest_risk_score = rm[1]
                 break
-    else:
-        direction = None
-        directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-        tom = get_common_elements(directions_of_my_tail, possible_moves)
-        for t in tom:
-            ttt = check_ff_size(t, ff_moves, my_size)
-            if (ttt != None):
-                direction = t
-                print("DEBUG: trying a possible tail move")
-                break
-        if (direction == None):
-            print("DEBUG: no preferred direction, so we want best ff option")
+    #else:
+    #    direction = None
+    #    directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
+    #    tom = get_common_elements(directions_of_my_tail, possible_moves)
+    #    for t in tom:
+    #        ttt = check_ff_size(t, ff_moves, my_size)
+    #        if (ttt != None):
+    #            direction = t
+    #            print("DEBUG: trying a possible tail move")
+    #            break
+    #    if (direction == None):
+    #        print("DEBUG: no preferred direction, so we want best ff option")
         
     # if the risk score is acceptably low, check that the flood fill is compatible
     if ((lowest_risk_score != -1) and (lowest_risk_score <= threshold)):
@@ -630,12 +632,15 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         if (loop == same_count):
             for rm in risk_moves:
                 if (rm[0] in last_ditch_possible_moves):
-                    direction = rm[0]
-                    break
+                    if rm[0] in directions_of_my_tail:
+                        direction = rm[0]
+                        break
             print("DEBUG: Flood fill options all have same score.  Direction LR = {}".format(direction))
         else:
-            direction = first_direction
-            print("DEBUG: Picking direction with highest ff - best survival chance = {}".format(direction))
+            if ((loop - same_count)/loop > 0.25):
+                direction = first_direction
+                print("TOMMM: {}".format((loop - same_count)/loop))
+                print("DEBUG: Picking direction with highest ff - best survival chance = {}".format(direction))
 
     # if direction has not yet been set, take the highest empty flood fill option
     if (direction == None):
@@ -647,15 +652,16 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
-        for ffm in ff_moves:
-            direction = ffm[0]
-            print("DEBUG: Picking direction with best survival chance = {}".format(direction))
-            break
+        for rm in risk_moves:
+            if (rm[1] == lowest_risk_score):
+                direction = rm[0]
+                print("DEBUG: Picking direction with best survival chance = {}".format(direction))
+                break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
 
     if (direction == None):
-        print("DEBUG: TOMMMM !!!!!!!!!! Last DITCH Possible Moves={}".format(last_ditch_possible_moves))
+        print("DEBUG: Last DITCH Possible Moves={}".format(last_ditch_possible_moves))
         for ldm in last_ditch_possible_moves:
             direction = ldm
             print("DEBUG: No options left - choose last ditch possible move: {}".format(direction))
