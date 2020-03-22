@@ -585,7 +585,11 @@ def check_ff_size(direction, ff_moves, my_size):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
     # final decision
     #threshold = 1.19
-    threshold = 0.86
+    #threshold = 0.86
+
+    
+    threshold = 0.95
+
     direction = None
     
     my_head = data["you"]["body"][0]
