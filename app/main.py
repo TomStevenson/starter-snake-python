@@ -610,7 +610,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     preferred_direction = None    
     if (my_size > 8):
         #print("INFO: Snake Head Danger is = {}".format(shd))
-        if (shd/number_of_active_snakes <= 5):    
+        if (shd/number_of_active_snakes <= 4):    
             print("DEBUG: !!! Snake Head Danger is HIGH = {}".format(shd))
             t_away = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, possible_moves, False)
             print("DEBUG: Directions away from ALL snake heads = {}".format(t_away))
@@ -810,19 +810,10 @@ def move():
     health_threshold = 30
     if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
-        if ((my_size >= 18) and (my_health > health_threshold)):
-            print("DEBUG: I am big - chase my tail")
-            target["x"] = my_tail["x"]
-            target["y"] = my_tail["y"]
     elif (shortest_length < len(data["you"]["body"])):
-        if (my_size >= 18):
-            print("DEBUG: I am big - chase my tail")
-            target["x"] = my_tail["x"]
-            target["y"] = my_tail["y"]
-        else:
-            print("DEBUG: Chase shortest snake")
-            target["x"] = shortest_snake["body"][0]["x"]
-            target["y"] = shortest_snake["body"][0]["y"]
+        print("DEBUG: Chase shortest snake")
+        target["x"] = shortest_snake["body"][0]["x"]
+        target["y"] = shortest_snake["body"][0]["y"]
     else:
         print("DEBUG: Chase my tail")
         target["x"] = my_tail["x"]
