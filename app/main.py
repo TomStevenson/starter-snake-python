@@ -210,25 +210,33 @@ def is_there_a_longer_snake(data):
 # bad_coords: array of bad coordinates
 # snake_coords: array of all snake parts
 # returns: array of all possible moves
-def get_possible_moves(my_head, my_tail, bad_coords, snake_coords):
+def get_possible_moves(my_head, my_tail, bad_coords, snake_coords, snake_tails):
     possible_moves = []
     tail = (my_tail["x"], my_tail["y"])
     snake_coords.remove(tail)
     # left
     coord = (my_head["x"] -1 , my_head["y"])
-    if ((coord not in bad_coords) and (coord not in snake_coords)):
+    if (coord in snake_tails):
+        possible_moves.append("left")
+    elif ((coord not in bad_coords) and (coord not in snake_coords)):
         possible_moves.append("left")
     # right
     coord = (my_head["x"] + 1, my_head["y"])
-    if (coord not in bad_coords) and (coord not in snake_coords):
+    if (coord in snake_tails):
+        possible_moves.append("right") 
+    elif (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("right") 
     # up
     coord = (my_head["x"], my_head["y"] - 1)
-    if (coord not in bad_coords) and (coord not in snake_coords):
+    if (coord in snake_tails):
+        possible_moves.append("up")
+    elif (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("up")
     # down
     coord = (my_head["x"], my_head["y"] + 1)
-    if (coord not in bad_coords) and (coord not in snake_coords):
+    if (coord in snake_tails):
+        possible_moves.append("down")
+    elif (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("down")
     return possible_moves
 
@@ -820,7 +828,7 @@ def move():
         #target["y"] = my_tail["y"]
 
     # determine possible moves - remove any entries where we need to avoid snake heads
-    possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
+    possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords, snake_tails)
     
     last_ditch_possible_moves = []
     for pm in possible_moves:
