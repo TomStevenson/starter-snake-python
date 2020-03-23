@@ -810,10 +810,19 @@ def move():
     health_threshold = 30
     if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
+        if ((my_size >= 18) and (my_health > health_threshold)):
+            print("DEBUG: I am big - chase my tail")
+            target["x"] = my_tail["x"]
+            target["y"] = my_tail["y"]
     elif (shortest_length < len(data["you"]["body"])):
-        print("DEBUG: Chase shortest snake")
-        target["x"] = shortest_snake["body"][0]["x"]
-        target["y"] = shortest_snake["body"][0]["y"]
+        if (my_size >= 18):
+            print("DEBUG: I am big - chase my tail")
+            target["x"] = my_tail["x"]
+            target["y"] = my_tail["y"]
+        else:
+            print("DEBUG: Chase shortest snake")
+            target["x"] = shortest_snake["body"][0]["x"]
+            target["y"] = shortest_snake["body"][0]["y"]
     else:
         print("DEBUG: Chase my tail")
         target["x"] = my_tail["x"]
