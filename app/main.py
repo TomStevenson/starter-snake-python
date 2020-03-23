@@ -210,33 +210,26 @@ def is_there_a_longer_snake(data):
 # bad_coords: array of bad coordinates
 # snake_coords: array of all snake parts
 # returns: array of all possible moves
-def get_possible_moves(my_head, my_tail, bad_coords, snake_coords, snake_tails):
+def get_possible_moves(my_head, my_tail, bad_coords, snake_coords):
     possible_moves = []
     tail = (my_tail["x"], my_tail["y"])
     snake_coords.remove(tail)
+
     # left
     coord = (my_head["x"] -1 , my_head["y"])
-    if (coord in snake_tails):
-        possible_moves.append("left")
-    elif ((coord not in bad_coords) and (coord not in snake_coords)):
+    if (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("left")
     # right
     coord = (my_head["x"] + 1, my_head["y"])
-    if (coord in snake_tails):
-        possible_moves.append("right") 
-    elif (coord not in bad_coords) and (coord not in snake_coords):
+    if (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("right") 
     # up
     coord = (my_head["x"], my_head["y"] - 1)
-    if (coord in snake_tails):
-        possible_moves.append("up")
-    elif (coord not in bad_coords) and (coord not in snake_coords):
+    if (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("up")
     # down
     coord = (my_head["x"], my_head["y"] + 1)
-    if (coord in snake_tails):
-        possible_moves.append("down")
-    elif (coord not in bad_coords) and (coord not in snake_coords):
+    if (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("down")
     return possible_moves
 
@@ -467,15 +460,12 @@ def get_directions_of_my_tail(my_head, my_tail, possible_moves):
 # snake_coords: array of all snake coords on the board
 # returns: a matrix with 's' where a snake part exists, and 'e' where none exists
 def build_matrix(width, height, data, snake_coords):
-    #my_size = len(data["you"]["body"])
-    #my_tail = data["you"]["body"][my_size-1]
     snake_tails = get_snake_array(-1, data)
     matrix = [[0 for x in range(width)] for y in range(height)]
     for x in range(width):
         for y in range(height):
             testCoord = (x, y)
-            #tail = (my_tail["x"], my_tail["y"])
-            if ((testCoord in snake_coords) and (testCoord != snake_tails)):
+            if ((testCoord in snake_coords) and (testCoord not in snake_tails)):
                 matrix[x][y] = 's'
             else:
                 matrix[x][y] = 'e'
@@ -828,7 +818,7 @@ def move():
         #target["y"] = my_tail["y"]
 
     # determine possible moves - remove any entries where we need to avoid snake heads
-    possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords, snake_tails)
+    possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
     
     last_ditch_possible_moves = []
     for pm in possible_moves:
