@@ -396,7 +396,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 break
         
         move_to_edge = 0
-        mte_factor = 0.4
+        mte_factor = 0
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
