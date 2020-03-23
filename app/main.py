@@ -610,7 +610,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     preferred_direction = None    
     if (my_size > 8):
         #print("INFO: Snake Head Danger is = {}".format(shd))
-        if (shd/number_of_active_snakes <= 4):    
+        if (shd/number_of_active_snakes <= 5):    
             print("DEBUG: !!! Snake Head Danger is HIGH = {}".format(shd))
             t_away = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, possible_moves, False)
             print("DEBUG: Directions away from ALL snake heads = {}".format(t_away))
