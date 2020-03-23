@@ -816,8 +816,8 @@ def move():
         target["y"] = shortest_snake["body"][0]["y"]
     else:
         print("DEBUG: Chase my tail")
-        target["x"] = my_tail["x"]
-        target["y"] = my_tail["y"]
+        #target["x"] = my_tail["x"]
+        #target["y"] = my_tail["y"]
 
     # determine possible moves - remove any entries where we need to avoid snake heads
     possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
