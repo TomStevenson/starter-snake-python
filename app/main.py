@@ -484,7 +484,7 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
                     left -= 5
                 else:
                     left += 1
-            if ((y > my_head["y"]) and (matrix[x][y] == 's')):
+            if ((y >= my_head["y"]) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     down += 8
                 elif (test in snake_tails):
@@ -498,7 +498,7 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
                     up -= 5
                 else:
                     up += 1
-            if ((x > my_head["x"]) and (matrix[x][y] == 's')):
+            if ((x >= my_head["x"]) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     right += 8
                 elif (test in snake_tails):
