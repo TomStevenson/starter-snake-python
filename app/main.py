@@ -395,7 +395,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 break
         
         move_to_edge = 0
-        mte_factor = 0.3
+        mte_factor = 0.25
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -431,7 +431,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 edge_factor = r_calc / height
                 edges_adjust += edge_factor
 
-        tup = (move, risk_area + sv + edges_adjust + move_to_edge)
+        tup = (move, risk_area + sv + edges_adjust*0.6 + move_to_edge)
     return tup
 
 def get_directions_of_my_tail(my_head, my_tail, possible_moves):
@@ -570,7 +570,7 @@ def get_ff_size(direction, ff_moves):
 def check_ff_size(direction, ff_moves, my_size):
     new_direction = None
     ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size*0.75 >= my_size):
+    if (ff_size*1.25 >= my_size):
         new_direction = direction
         print("DEBUG: choosing supplied direction: {}".format(new_direction))
     else:
@@ -588,7 +588,7 @@ def check_ff_size(direction, ff_moves, my_size):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
     # final decision
     #threshold = 1.19
-    threshold = 0.87
+    threshold = 0.95
     direction = None
     
     my_head = data["you"]["body"][0]
