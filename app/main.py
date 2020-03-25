@@ -100,10 +100,10 @@ def is_snake_longer_than_me(data, snake_head):
                 break
     return longer_snake
 
-def which_directions_are_away_from_snake_heads(my_head, snake_heads, data, possible_moves, ignore = False):
+def which_directions_are_away_from_snake_heads(my_head, snake_heads, data, possible_moves):
     retval = []
     for sh in snake_heads:
-        if (is_snake_longer_than_me(data, sh) or ignore):
+        if (is_snake_longer_than_me(data, sh)):
             x = my_head["x"] - sh[0]
             if (x > 0):
                 if ("right" not in retval):
@@ -604,11 +604,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         number_of_active_snakes = 1
 
     preferred_direction = None    
-    if (my_size > 8):
+    if (my_size >= 7):
         #print("INFO: Snake Head Danger is = {}".format(shd))
         if (shd/number_of_active_snakes <= 4):    
             print("DEBUG: !!! Snake Head Danger is HIGH = {}".format(shd))
-            t_away = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, possible_moves, False)
+            t_away = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, last_ditch_possible_moves)
             print("DEBUG: Directions away from ALL snake heads = {}".format(t_away))
             for pm in preferred_moves:
                 if (preferred_direction != None):
@@ -630,11 +630,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             else:
                 direction = preferred_direction
                 print("DEBUG: !!! Pick preferred direction that avoids heads = {}".format(preferred_direction))
-            #if (preferred_direction == None):
-            #    for rm in risk_moves:
-            #        preferred_direction = rm[0]
-            #        print("DEBUG: !!! Pick least risk direction that avoids heads = {}".format(preferred_direction))
-            #        break
     
     # preferred direction
     if (preferred_direction == None):
@@ -657,23 +652,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
             direction = least_risk_direction
             break
-        #else:
-        #    if least_risk_direction not in avoid_heads:
-        #        if least_risk_direction in directions_of_my_tail:
-        #            direction = least_risk_direction
-        #            print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
-        #            break
-
         
-    #if (direction == None):
-    #    directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-    #    if least_risk_direction in directions_of_my_tail:
-    #        direction = least_risk_direction
-    #        print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
-
-    height = data["board"]["height"]
-    width = data["board"]["width"]
-    
     # obtain the lowest risk score of the preferred move options
     lowest_risk_score = -1
     if (preferred_direction != None):        
@@ -681,18 +660,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (rm[0] == preferred_direction):
                 lowest_risk_score = rm[1]
                 break
-    #else:
-    #    direction = None
-    #    directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-    #    tom = get_common_elements(directions_of_my_tail, possible_moves)
-    #    for t in tom:
-    #        ttt = check_ff_size(t, ff_moves, my_size)
-    #        if (ttt != None):
-    #            direction = t
-    #            print("DEBUG: trying a possible tail move")
-    #            break
-    #    if (direction == None):
-    #        print("DEBUG: no preferred direction, so we want best ff option")
         
     # if the risk score is acceptably low, check that the flood fill is compatible
     if ((lowest_risk_score != -1) and (lowest_risk_score <= threshold)):
