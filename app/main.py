@@ -602,7 +602,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         number_of_active_snakes = 1
 
     preferred_direction = None    
-    if (my_size >= 10):
+    if (my_size >= 6):
         #print("INFO: Snake Head Danger is = {}".format(shd))
         if (shd/number_of_active_snakes <= 4):    
             print("DEBUG: !!! Snake Head Danger is HIGH = {}".format(shd))
