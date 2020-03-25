@@ -58,16 +58,34 @@ def get_snake_head_danger(snake_head, data):
 
 def get_food_list(snake_head, data):
     closest = []
+    closest1 = []
     last_score = 999999
+    height = data["board"]["height"]
+    width = data["board"]["width"]
     l = []
+
     for current_food in data["board"]["food"]:
         current_distance = [99, 99]
         current_distance[0] = abs(snake_head["x"] - current_food["x"])
         current_distance[1] = abs(snake_head["y"] - current_food["y"])
         current_score = current_distance[0] * current_distance[1]
         if current_score < last_score:
-            closest = current_food
-            last_score = current_score
+            if ((current_food["x"] != 0) and (current_food["y"] != 0) and (current_food["x"] != width - 1) and (current_food["y"] != height - 1)):
+                closest = current_food
+                last_score = current_score
+    # turn this into a function if this is beneficial  
+    if (len(closest) > 0):
+        l.append(closest)
+    else:
+        for current_food in data["board"]["food"]:
+            current_distance = [99, 99]
+            current_distance[0] = abs(snake_head["x"] - current_food["x"])
+            current_distance[1] = abs(snake_head["y"] - current_food["y"])
+            current_score = current_distance[0] * current_distance[1]
+            if current_score < last_score:
+                    closest = current_food
+                    last_score = current_score
+    
     l.append(closest)
     return l
 
@@ -362,8 +380,6 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                         if (len(me) < otherSnakeSize):
                             risk += 5
                             print("DEBUG: +5 to risk - bigger snake head !")
-    #print("DEBUG: risk: {}".format(risk))
-    #print("DEBUG: fake_area: {}".format(fake_area))
     if (risk > 0):
         risk_factor = risk / fake_area
     else:
@@ -462,7 +478,6 @@ def build_matrix(width, height, data, snake_coords):
     for x in range(width):
         for y in range(height):
             testCoord = (x, y)
-            #tail = (my_tail["x"], my_tail["y"])
             if (testCoord in snake_coords):
                 matrix[x][y] = 's'
             else:
@@ -507,16 +522,16 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
                     right += 1
     retval = []
     if ("left" in possible_moves):
-        print("SCAN LEFT: {}".format(left*0.01))
+        #print("SCAN LEFT: {}".format(left*0.01))
         retval.append(("left", left*0.01))
     if ("right" in possible_moves):
-        print("SCAN RIGHT: {}".format(right*0.01))
+        #print("SCAN RIGHT: {}".format(right*0.01))
         retval.append(("right", right*0.01))
     if ("up" in possible_moves):
-        print("SCAN UP: {}".format(up*0.01))
+        #print("SCAN UP: {}".format(up*0.01))
         retval.append(("up", up*0.01))
     if ("down" in possible_moves):
-        print("SCAN DOWN: {}".format(down*0.01))
+        #print("SCAN DOWN: {}".format(down*0.01))
         retval.append(("down", down*0.01))
     
     retval.sort(key=lambda x: x[1])
@@ -599,7 +614,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     shd = get_snake_head_danger(my_head, data)
     number_of_active_snakes = len(data["board"]["snakes"])
-    #print("INFO: Number of Active Snakes is = {}".format(number_of_active_snakes))
+    print("INFO: Number of Active Snakes is = {}".format(number_of_active_snakes))
     if number_of_active_snakes == 0:
         number_of_active_snakes = 1
 
