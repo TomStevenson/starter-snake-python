@@ -58,7 +58,6 @@ def get_snake_head_danger(snake_head, data):
 
 def get_food_list(snake_head, data):
     closest = []
-    closest1 = []
     last_score = 999999
     height = data["board"]["height"]
     width = data["board"]["width"]
@@ -72,20 +71,7 @@ def get_food_list(snake_head, data):
         if current_score < last_score:
             if ((current_food["x"] != 0) and (current_food["y"] != 0) and (current_food["x"] != width - 1) and (current_food["y"] != height - 1)):
                 closest = current_food
-                last_score = current_score
-    # turn this into a function if this is beneficial  
-    if (len(closest) > 0):
-        l.append(closest)
-    else:
-        for current_food in data["board"]["food"]:
-            current_distance = [99, 99]
-            current_distance[0] = abs(snake_head["x"] - current_food["x"])
-            current_distance[1] = abs(snake_head["y"] - current_food["y"])
-            current_score = current_distance[0] * current_distance[1]
-            if current_score < last_score:
-                    closest = current_food
-                    last_score = current_score
-    
+                last_score = current_score 
     l.append(closest)
     return l
 
@@ -619,7 +605,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         number_of_active_snakes = 1
 
     preferred_direction = None    
-    if (my_size >= 7):
+    if (my_size >= 10):
         #print("INFO: Snake Head Danger is = {}".format(shd))
         if (shd/number_of_active_snakes <= 4):    
             print("DEBUG: !!! Snake Head Danger is HIGH = {}".format(shd))
