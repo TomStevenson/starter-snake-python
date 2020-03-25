@@ -59,8 +59,6 @@ def get_snake_head_danger(snake_head, data):
 def get_food_list(snake_head, data):
     closest = []
     last_score = 999999
-    height = data["board"]["height"]
-    width = data["board"]["width"]
     l = []
 
     for current_food in data["board"]["food"]:
@@ -69,9 +67,8 @@ def get_food_list(snake_head, data):
         current_distance[1] = abs(snake_head["y"] - current_food["y"])
         current_score = current_distance[0] * current_distance[1]
         if current_score < last_score:
-            if ((current_food["x"] != 0) and (current_food["y"] != 0) and (current_food["x"] != width - 1) and (current_food["y"] != height - 1)):
-                closest = current_food
-                last_score = current_score 
+            closest = current_food
+            last_score = current_score 
     l.append(closest)
     return l
 
