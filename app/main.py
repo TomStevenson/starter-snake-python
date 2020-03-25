@@ -585,7 +585,7 @@ def check_ff_size(direction, ff_moves, my_size):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, avoid_heads, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
     # final decision
     #threshold = 1.19
     #threshold = 0.93
@@ -639,10 +639,9 @@ def make_decision(preferred_moves, avoid_heads, possible_moves, last_ditch_possi
     # preferred direction
     if (preferred_direction == None):
         for pm in preferred_moves:
-            if (pm not in avoid_heads):
-                preferred_direction = pm
-                print("DEBUG: Preferred direction = {}".format(preferred_direction))
-                break
+            preferred_direction = pm
+            print("DEBUG: Preferred direction = {}".format(preferred_direction))
+            break
 
     
     # least risk direction         
@@ -658,12 +657,12 @@ def make_decision(preferred_moves, avoid_heads, possible_moves, last_ditch_possi
             print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
             direction = least_risk_direction
             break
-        else:
-            if least_risk_direction not in avoid_heads:
-                if least_risk_direction in directions_of_my_tail:
-                    direction = least_risk_direction
-                    print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
-                    break
+        #else:
+        #    if least_risk_direction not in avoid_heads:
+        #        if least_risk_direction in directions_of_my_tail:
+        #            direction = least_risk_direction
+        #            print("DEBUG: move is toward tail - picking it: {}".format(least_risk_direction))
+        #            break
 
         
     #if (direction == None):
@@ -834,9 +833,9 @@ def move():
     print("DEBUG: Last Ditch Possible Moves={}".format(last_ditch_possible_moves))
 
     avoid_heads = get_snake_heads_to_avoid(my_head, snake_heads, data)
-    #for ah in avoid_heads:
-        #if (ah in possible_moves):
-        #    possible_moves.remove(ah)
+    for ah in avoid_heads:
+        if (ah in possible_moves):
+            possible_moves.remove(ah)
 
     # build array of preferred moves to get to target food or enemy
     preferred_moves = get_preferred_moves(my_head, target, possible_moves)
@@ -874,7 +873,7 @@ def move():
 
     # final decision
     m = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, avoid_heads, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails)
 
     return move_response(direction)
 
