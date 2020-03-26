@@ -394,7 +394,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 break
         
         move_to_edge = 0
-        mte_factor = 0.3
+        mte_factor = 0.4
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -645,7 +645,7 @@ def extract_2(lst):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails):
     # final decision
     #threshold = 1.15
-    threshold = 1.4
+    threshold = 1.35
     direction = None
     
     my_head = data["you"]["body"][0]
