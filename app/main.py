@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#fff000"
+    color = "#f00000"
 
     return start_response(color)
 
@@ -394,7 +394,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 break
         
         move_to_edge = 0
-        mte_factor = 0
+        mte_factor = 0.3
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -430,7 +430,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 edge_factor = r_calc / height
                 edges_adjust += edge_factor
 
-        tup = (move, 2-(risk_area + sv + edges_adjust*0.6 + move_to_edge))
+        tup = (move, 2-(risk_area + sv + 0.6*edges_adjust + move_to_edge))
     return tup
 
 def get_directions_of_my_tail(my_head, my_tail, possible_moves):
@@ -593,6 +593,15 @@ def get_weight(weight, vote):
             break
     return retval
 
+def get_risk(move, risk_moves):
+    retval = 0.0
+    if (move != None):
+        for rm in risk_moves:
+            if (rm[0] == move):
+                retval = rm[1] * 1.0
+                break
+    return retval
+
 def vote(votes_table, votes, weight = 1.0):
     for vote in votes:
         if vote in votes_table:
@@ -610,6 +619,15 @@ def vote_with_weights(votes_table, votes, weights):
             votes_table[vote] = w
     return votes_table
 
+def vote_with_risk_weights(votes_table, votes, weights):
+    for vote in votes:
+        w = get_weight(weights, vote)
+        if vote in votes_table:
+            votes_table[vote] += (2.5 - w)
+        else:
+            votes_table[vote] = (2.5 - w)
+    return votes_table
+
 def extract_1(lst): 
     return [item[0] for item in lst] 
 
@@ -625,7 +643,8 @@ def extract_2(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
     # final decision
-    threshold = 1.4
+    #threshold = 2.09
+    threshold = 1.34
     #threshold = 0.93
     #threshold = -0.19
     #threshold = 0.6
@@ -642,11 +661,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #print(votes_table)
     votes_table = vote(votes_table, away_from)
     #print(votes_table)
-    votes_table = vote(votes_table, directions_of_my_tail)
+    votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     #print(votes_table)
     votes_table = vote_with_weights(votes_table, extract_1(ff_moves), ff_moves)
     #print(votes_table)
-    votes_table = vote_with_weights(votes_table, extract_1(risk_moves), risk_moves)
+    votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     #print(votes_table)
 
     val = None
@@ -659,18 +678,13 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     for pm in preferred_moves:
         if (preferred_direction == None):
             if pm in possible_moves:
-                for fm in ff_moves:
-                    if (fm[0] == pm):
-                        if (fm[1] > 0):
-                            preferred_direction = pm
-                            break
+                if pm in extract_1(ff_moves):
+                    preferred_direction = pm
+                    break
 
-                #for lrm in risk_moves:
-                #    if (lrm[0] == pm):
-                #        if (abs(lrm[1]) <= threshold):
-                #            preferred_direction = pm
-                #            print("DEBUG: risk threshold is low enough to choose preferred direction: {}".format(pm))
-                #            break
+    if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
+        print("DEBUG: risk threshold is high enough to ignore direction: {}".format(preferred_direction))
+        preferred_direction = None
     
     if (preferred_direction != None):
         direction = pm
@@ -733,7 +747,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 30
+    health_threshold = 28
     if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
@@ -784,16 +798,24 @@ def move():
     ff_moves = []
     if ("up" in possible_moves):
         if ("up" in possible_moves):
-            ff_moves.append(("up", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)))
+            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
+            if (val > 0):
+                ff_moves.append(("up", val))
     if ("down" in possible_moves):
         if ("down" in possible_moves):
-            ff_moves.append(("down", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)))
+            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)
+            if (val > 0):
+                ff_moves.append(("down", val))
     if ("left" in possible_moves):
         if ("left" in possible_moves):
-            ff_moves.append(("left", build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)))
+            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)
+            if (val > 0):
+                ff_moves.append(("left", val))
     if ("right" in possible_moves):
         if ("right" in possible_moves):
-            ff_moves.append(("right", build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)))        
+            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
+            if (val > 0):
+                ff_moves.append(("right", val))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
     print("DEBUG: FF Moves: {}".format(ff_moves))
 
