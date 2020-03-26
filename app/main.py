@@ -518,7 +518,7 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
         retval.append(("down", down*0.01))
     
     retval.sort(key=lambda x: x[1])
-    #print("DEBUG: scan matrix: {}".format(retval))
+    print("DEBUG: scan matrix: {}".format(retval))
     return retval
 
 # floodfill_algorithm: recusive function to floodfill the provided matrix
@@ -549,10 +549,11 @@ def build_floodfill_move(width, height, snake_coords, data, x, y, test1, test2):
     if (test1 != test2):
         ff = floodfill_algorithm(build_matrix(width, height, data, snake_coords), x, y, 0, snake_coords)
         if (ff >= my_size + 1):
-            retval = 2
+            retval = ff
         else:
             retval = 0
     return retval
+
 
 # get_ff_size: helper function to get risk score for provided direction
 # direction: desired direction
@@ -641,13 +642,10 @@ def extract_2(lst):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails):
     # final decision
-    #threshold = 2.09
-    threshold = 1.34
-    #threshold = 0.93
-    #threshold = -0.19
-    #threshold = 0.6
+    #threshold = 1.15
+    threshold = 1.4
     direction = None
     
     my_head = data["you"]["body"][0]
@@ -659,11 +657,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     votes_table = {}
     #votes_table = vote(votes_table, preferred_moves)
     #print(votes_table)
-    votes_table = vote(votes_table, away_from)
+    votes_table = vote(votes_table, away_from, 1.5)
     #print(votes_table)
     votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     #print(votes_table)
-    votes_table = vote_with_weights(votes_table, extract_1(ff_moves), ff_moves)
+    votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
     #print(votes_table)
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     #print(votes_table)
@@ -678,17 +676,23 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     for pm in preferred_moves:
         if (preferred_direction == None):
             if pm in possible_moves:
-                if pm in extract_1(ff_moves):
+                if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
                     preferred_direction = pm
+                    print("DEBUG: risk threshold is low enough to go with: {}".format(preferred_direction))
                     break
-
-    if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
-        print("DEBUG: risk threshold is high enough to ignore direction: {}".format(preferred_direction))
-        preferred_direction = None
     
     if (preferred_direction != None):
-        direction = pm
-        print("DEBUG: Choosing Preferred direction = {}".format(direction))
+        lof = get_ff_size(preferred_direction, ff_moves, data)
+        if (lof == None):
+            direction = None
+        elif (lof >= (my_size - 1.0)):
+            direction = preferred_direction
+            print("DEBUG: Choosing Preferred direction = {}".format(direction))
+        else:
+            direction = None
+            print("DEBUG: Preferred direction too small for snake !! = {}".format(direction))
+            print("DEBUG: FF Size = {}".format(lof))
+            print("DEBUG: My Size = {}".format(my_size))
     
     if (direction == None):
         direction = val
@@ -796,32 +800,38 @@ def move():
 
     # build array of sizes of empty squares in flood fill of all four directions
     ff_moves = []
+    ff_fits = []
     if ("up" in possible_moves):
         if ("up" in possible_moves):
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
             if (val > 0):
                 ff_moves.append(("up", val))
+                ff_fits.append(("up", 2.0))
     if ("down" in possible_moves):
         if ("down" in possible_moves):
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)
             if (val > 0):
                 ff_moves.append(("down", val))
+                ff_fits.append(("down", 2.0))
     if ("left" in possible_moves):
         if ("left" in possible_moves):
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)
             if (val > 0):
                 ff_moves.append(("left", val))
+                ff_fits.append(("left", 2.0))
     if ("right" in possible_moves):
         if ("right" in possible_moves):
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
             if (val > 0):
-                ff_moves.append(("right", val))        
+                ff_moves.append(("right", val))
+                ff_fits.append(("right", 2.0))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
     print("DEBUG: FF Moves: {}".format(ff_moves))
+    print("DEBUG: FF Fits: {}".format(ff_fits))
 
     # final decision
     m = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails)
 
     return move_response(direction)
 
