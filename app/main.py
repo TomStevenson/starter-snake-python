@@ -659,7 +659,8 @@ def extract_2(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails):
     # final decision
-    threshold = 0.197
+    #threshold = 0.197
+    threshold = 0.179
     direction = None
     
     my_head = data["you"]["body"][0]
@@ -719,7 +720,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             lof = get_ff_size(elem[0], ff_moves, data)
             if (lof == None):
                 print("DEBUG: No flood fill size - not a good sign")
-                if (elem in possible_moves):
+                if (elem[0] in possible_moves):
                     direction = elem[0]
                     print("DEBUG: Move is possible - taking a chance, but still looking")
             elif (lof >= (my_size - 1.0)):
