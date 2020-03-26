@@ -645,7 +645,7 @@ def extract_2(lst):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails):
     # final decision
     #threshold = 1.15
-    threshold = 1.35
+    threshold = 1.30
     direction = None
     
     my_head = data["you"]["body"][0]
