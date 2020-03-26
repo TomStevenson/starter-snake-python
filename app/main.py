@@ -386,7 +386,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
             mode = 0
         #print("DEBUG: Risk direction being tested: {}".format(move))
         risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
-        scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data), my_head)
+        scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data), my_head, data)
         sv = 0
         for s in scan:
             if (s[0] == move):
@@ -394,7 +394,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 break
         
         move_to_edge = 0
-        mte_factor = 0.4
+        mte_factor = 0.1
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -414,7 +414,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                     p_to_test = (my_head["y"] + 2)
                 else:
                     p_to_test = (my_head["y"])
-                mid_point = width / 2
+                mid_point = round(width / 2)
                 r_calc = abs(mid_point - p_to_test)
                 edge_factor = r_calc / width
                 edges_adjust += edge_factor
@@ -425,12 +425,17 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                     p_to_test = (my_head["y"] + 2)
                 else:
                     p_to_test = (my_head["y"])
-                mid_point = height / 2
+                mid_point = round(height / 2)
                 r_calc = abs(mid_point - p_to_test)
                 edge_factor = r_calc / height
                 edges_adjust += edge_factor
-
-        tup = (move, 2-(risk_area + sv + 0.6*edges_adjust + move_to_edge))
+        #print(" DEBUG: risky business: {}".format(move))
+        #print("     DEBUG: risk area: {}".format(5*risk_area))
+        #print("     DEBUG: sv: {}".format(sv))
+        #print("     DEBUG: edges adjust: {}".format(0.1 * edges_adjust))
+        #print("     DEBUG: move to edge: {}".format(move_to_edge))
+        #tup = (move, 5-(5*risk_area + 3*sv + 0.6*edges_adjust + move_to_edge))
+        tup = (move, (sv + 0.1 * edges_adjust + move_to_edge))
     return tup
 
 def get_directions_of_my_tail(my_head, my_tail, possible_moves):
@@ -449,7 +454,7 @@ def get_directions_of_my_tail(my_head, my_tail, possible_moves):
     if (y < 0):
         if ("down" in possible_moves):
             directions.append("down")
-    print("DEBUG: directions of my tail: {}".format(directions))
+    print("DEBUG: Directions of my tail: {}".format(directions))
     return directions
 
 # build_matrix: builds a matrix populated with the whereabouts of the snakes
@@ -467,11 +472,12 @@ def build_matrix(width, height, data, snake_coords):
                 matrix[x][y] = 'e'
     return matrix
 
-def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails, my_head):
+def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails, my_head, data):
     left = 0
     right = 0
     up = 0
     down = 0
+    me = data["you"]["body"]
     for x in range(width):
         for y in range(height):
             test = (x, y)
@@ -480,6 +486,8 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
                     left += 8
                 elif (test in snake_tails):
                     left -= 5
+                elif (test in me):
+                    left += 0.4
                 else:
                     left += 1
             if ((y >= my_head["y"]) and (matrix[x][y] == 's')):
@@ -487,6 +495,8 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
                     down += 8
                 elif (test in snake_tails):
                     down -= 5
+                elif (test in me):
+                    down += 0.4
                 else:
                     down += 1
             if ((y <= my_head["y"]) and (matrix[x][y] == 's')):
@@ -494,6 +504,8 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
                     up += 8
                 elif (test in snake_tails):
                     up -= 5
+                elif (test in me):
+                    up += 0.4
                 else:
                     up += 1
             if ((x >= my_head["x"]) and (matrix[x][y] == 's')):
@@ -501,6 +513,8 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
                     right += 8
                 elif (test in snake_tails):
                     right -= 5
+                elif (test in me):
+                    right += 0.4
                 else:
                     right += 1
     retval = []
@@ -518,7 +532,7 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails,
         retval.append(("down", down*0.01))
     
     retval.sort(key=lambda x: x[1])
-    print("DEBUG: scan matrix: {}".format(retval))
+    #print("DEBUG: scan matrix: {}".format(retval))
     return retval
 
 # floodfill_algorithm: recusive function to floodfill the provided matrix
@@ -621,12 +635,13 @@ def vote_with_weights(votes_table, votes, weights):
     return votes_table
 
 def vote_with_risk_weights(votes_table, votes, weights):
+    i = len(votes_table)
     for vote in votes:
-        w = get_weight(weights, vote)
         if vote in votes_table:
-            votes_table[vote] += (2.5 - w)
+            votes_table[vote] += i
         else:
-            votes_table[vote] = (2.5 - w)
+            votes_table[vote] = i
+        i -= 1
     return votes_table
 
 def extract_1(lst): 
@@ -644,8 +659,7 @@ def extract_2(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails):
     # final decision
-    #threshold = 1.15
-    threshold = 1.30
+    threshold = 0.197
     direction = None
     
     my_head = data["you"]["body"][0]
@@ -659,7 +673,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #print(votes_table)
     votes_table = vote(votes_table, away_from, 1.5)
     #print(votes_table)
-    votes_table = vote(votes_table, directions_of_my_tail, 0.5)
+    votes_table = vote(votes_table, directions_of_my_tail, 1.1)
     #print(votes_table)
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
     #print(votes_table)
@@ -685,6 +699,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         lof = get_ff_size(preferred_direction, ff_moves, data)
         if (lof == None):
             direction = None
+            print("DEBUG: Cancelling choice - not an FF option = {}".format(preferred_direction))
         elif (lof >= (my_size - 1.0)):
             direction = preferred_direction
             print("DEBUG: Choosing Preferred direction = {}".format(direction))
@@ -695,8 +710,29 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             print("DEBUG: My Size = {}".format(my_size))
     
     if (direction == None):
-        direction = val
-        print("DEBUG: Voted direction = {}".format(direction))
+        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
+        #print(newlist)
+        # Iterate over the sorted sequence
+        for elem in newlist:
+            #print(elem[0] , " ::" , elem[1] )
+            print("DEBUG: Next highest vote = {}".format(elem[0]))
+            lof = get_ff_size(elem[0], ff_moves, data)
+            if (lof == None):
+                print("DEBUG: No flood fill size - not a good sign")
+                if (elem in possible_moves):
+                    direction = elem[0]
+                    print("DEBUG: Move is possible - taking a chance, but still looking")
+            elif (lof >= (my_size - 1.0)):
+                direction = elem[0]
+                print("DEBUG: Next vote fits: {}".format(direction))
+                break
+
+    # we are running out of options - get the first "possible" move from the unadulterated list
+    if (direction == None):
+        for lr in risk_moves:
+            direction = lr[0]
+            print("DEBUG: Almost last resort - pick lowest risk: {}".format(direction))
+            break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
@@ -806,25 +842,25 @@ def move():
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
             if (val > 0):
                 ff_moves.append(("up", val))
-                ff_fits.append(("up", 2.0))
+                ff_fits.append(("up", 1.0))
     if ("down" in possible_moves):
         if ("down" in possible_moves):
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)
             if (val > 0):
                 ff_moves.append(("down", val))
-                ff_fits.append(("down", 2.0))
+                ff_fits.append(("down", 1.0))
     if ("left" in possible_moves):
         if ("left" in possible_moves):
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)
             if (val > 0):
                 ff_moves.append(("left", val))
-                ff_fits.append(("left", 2.0))
+                ff_fits.append(("left", 1.0))
     if ("right" in possible_moves):
         if ("right" in possible_moves):
             val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
             if (val > 0):
                 ff_moves.append(("right", val))
-                ff_fits.append(("right", 2.0))        
+                ff_fits.append(("right", 1.0))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
     print("DEBUG: FF Moves: {}".format(ff_moves))
     print("DEBUG: FF Fits: {}".format(ff_fits))
