@@ -687,11 +687,23 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
     # preferred direction
+    #preferred_direction = None
+    #for pm in preferred_moves:
+    #    if (preferred_direction == None):
+    #        if pm in possible_moves:
+    #            if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
+    #                preferred_direction = pm
+    #                print("DEBUG: risk threshold is low enough to go with: {}".format(preferred_direction))
+    #                break
+
+    # preferred direction
     preferred_direction = None
-    for pm in preferred_moves:
-        if (preferred_direction == None):
-            if pm in possible_moves:
-                if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
+    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, possible_moves)
+    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
+    preferred_direction = get_first_common_element(preferred_moves, away_from_heads)
+    if (preferred_direction == None):
+        for pm in preferred_moves:
+             if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
                     preferred_direction = pm
                     print("DEBUG: risk threshold is low enough to go with: {}".format(preferred_direction))
                     break
