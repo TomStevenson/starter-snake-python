@@ -250,7 +250,7 @@ def test_for_snake_head(direction, coords_to_test, data):
                 temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                 if (temp == test):
                     other_snake_size = len(snake["body"])
-                    if (my_size <= other_snake_size):
+                    if (my_size < other_snake_size):
                         heads_to_avoid.append(direction)
                         #print("DEBUG: Avoid snake head!")
     return heads_to_avoid
@@ -597,13 +597,18 @@ def extract_1(lst):
 # my_size: length of my snake
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
-    # final decision
-    threshold = 0.197
-    #threshold = 0.179
+    my_size = len(data["you"]["body"])
+    threshold = 3
+    if (my_size > 7):
+        threshold = 0.19
+    if (my_size > 10):
+        threshold = 0.179
+    if (my_size > 18):
+        threshold = 0.143
+
     direction = None
     
     my_head = data["you"]["body"][0]
-    my_size = len(data["you"]["body"])
     my_tail = data["you"]["body"][my_size-1]
     directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
     away_from_heads = which_directions_are_away_from_snake_heads(my_head, data, possible_moves)
@@ -622,16 +627,18 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     preferred_direction = get_first_common_element(preferred_moves, away_from_heads)
     if (preferred_direction == None):
         for pm in preferred_moves:
-             if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
-                    preferred_direction = pm
-                    print("DEBUG: risk threshold is low enough to go with: {}".format(preferred_direction))
-                    break
+            risk_thresh = abs(get_risk(pm, risk_moves))
+            if (risk_thresh <= threshold):
+                preferred_direction = pm
+                print("DEBUG: risk threshold is low enough to go with: {}".format(preferred_direction))
+                print(" DEBUG: risk threshold: {}".format(risk_thresh))
+                break
     
     if (preferred_direction != None):
         lof = get_ff_size(preferred_direction, ff_moves, data)
         if (lof == None):
             direction = None
-            print("DEBUG: Cancelling choice - not an FF option = {}".format(preferred_direction))
+            print("DEBUG: Not an FF option - keep looking = {}".format(preferred_direction))
         elif (lof >= (my_size - 1.0)):
             direction = preferred_direction
             print("DEBUG: Choosing Preferred direction = {}".format(direction))
