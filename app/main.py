@@ -318,7 +318,7 @@ def check_risky_business(move, snake_coords, possible_moves, data, width, height
                 break
         
         move_to_edge = 0
-        mte_factor = 0.3
+        mte_factor = 0.1
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -407,7 +407,7 @@ def build_matrix(width, height, data, snake_coords):
 def calculate_risk_factor(test_point, snake_heads, snake_tails, me):
     retval = 0
     # scale factor initialization
-    h_f = 10
+    h_f = 8
     t_f = 5
     m_f = 0.4
     if (test_point in snake_heads):
