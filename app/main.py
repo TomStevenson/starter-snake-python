@@ -45,26 +45,18 @@ def start():
 
     return start_response(color)
 
-def get_snake_head_danger(snake_head, data):
-    total_score = 0
-    for snake in data["board"]["snakes"]:
-        if (snake != data["you"]):
-            current_distance = [99, 99]
-            current_distance[0] = abs(snake_head["x"] - snake["body"][0]["x"])
-            current_distance[1] = abs(snake_head["y"] - snake["body"][0]["y"])
-            current_score = current_distance[0] * current_distance[1]
-            total_score = total_score + current_score
-    return total_score
-
-def get_food_list(snake_head, data):
+# get_food_list: scans the food array and finds the closest food to my snake head
+# my_head: coordinates of my snake head to be used as the reference point to food
+# data: generic game data to get the food list from
+# returns: coordinates of the closest food
+def get_food_list(my_head, data):
     closest = []
     last_score = 999999
     l = []
-
     for current_food in data["board"]["food"]:
         current_distance = [99, 99]
-        current_distance[0] = abs(snake_head["x"] - current_food["x"])
-        current_distance[1] = abs(snake_head["y"] - current_food["y"])
+        current_distance[0] = abs(my_head["x"] - current_food["x"])
+        current_distance[1] = abs(my_head["y"] - current_food["y"])
         current_score = current_distance[0] * current_distance[1]
         if current_score < last_score:
             closest = current_food
@@ -72,25 +64,19 @@ def get_food_list(snake_head, data):
     l.append(closest)
     return l
 
-def get_common_elements(x,y):
-    retval = []
-    for i in x:
-        if ((i in y) or (len(y) == 0)):
-            retval.append(i)
-    return retval
-
-# Fetches first element from x that is common for both lists
-# or return None if no such an element is found.  
+# get_food_list: fetches first element from x that is common for both lists
+# x,y: lists to search for common element in
+# returns: common element if found, None otherwise
 def get_first_common_element(x,y):
     for i in x:
         if i in y:
             return i
-    # In case no common element found, you could trigger Exception
-    # Or if no common element is _valid_ and common state of your application
-    # you could simply return None and test return value
-    # raise Exception('No common element found')
     return None
 
+# is_snake_longer_than_me: helper function that determines if the supplied snake is longer
+# data: game data to obtain snakes, my snake information from
+# snake_head: the snake_head to test if longer than me
+# returns: True if snake_head snake is longer than me, False otherwise
 def is_snake_longer_than_me(data, snake_head):
     longer_snake = False
     for snake in data["board"]["snakes"]:
@@ -101,8 +87,14 @@ def is_snake_longer_than_me(data, snake_head):
                 break
     return longer_snake
 
-def which_directions_are_away_from_snake_heads(my_head, snake_heads, data, possible_moves):
+# which_directions_are_away_from_snake_heads: helper function that determines directions away from bigger snakes
+# my_head: coordinates of my snake head
+# data: game data to obtain snakes, my snake information from
+# possible_moves: list of the possible moves the snake can make
+# returns: True if snake_head snake is longer than me, False otherwise
+def which_directions_are_away_from_snake_heads(my_head, data, possible_moves):
     retval = []
+    snake_heads = get_snake_array(0, data)
     for sh in snake_heads:
         if (is_snake_longer_than_me(data, sh)):
             x = my_head["x"] - sh[0]
@@ -136,22 +128,10 @@ def populate_bad_coords(width, height):
         badCoords.append(bad)
         bad = (x, height)
         badCoords.append(bad)
-        # include one additional square off board
-        # to easily remove from risk area calcs
-        bad = (x, -2)
-        badCoords.append(bad)
-        bad = (x, height + 1)
-        badCoords.append(bad)
     for y in range(height):
         bad = (-1, y)
         badCoords.append(bad)
         bad = (width, y)
-        badCoords.append(bad)
-        # include one additional square off board
-        # to easily remove from risk area calcs
-        bad = (-2, y)
-        badCoords.append(bad)
-        bad = (width + 1, y)
         badCoords.append(bad)
     return badCoords
 
@@ -212,6 +192,7 @@ def is_there_a_longer_snake(data):
 # returns: array of all possible moves
 def get_possible_moves(my_head, my_tail, bad_coords, snake_coords):
     possible_moves = []
+    # remove my tail from snake coords
     tail = (my_tail["x"], my_tail["y"])
     snake_coords.remove(tail)
     # left
@@ -257,10 +238,10 @@ def get_preferred_moves(my_head, target, possible_moves):
 # test_for_snake_head: checks for other snake heads nearby
 # direction: direction to test (left, right, up, down)
 # coords_to_test: array of coordinates to test for snake heads
-# snake_heads: array of all the snake heads on the board
 # data: json structure provided
 # returns: returns an array of bad directions that will encounter snake heads
-def test_for_snake_head(direction, coords_to_test, snake_heads, data):
+def test_for_snake_head(direction, coords_to_test, data):
+    snake_heads = get_snake_array(0, data)
     my_size = len(data["you"]["body"])
     heads_to_avoid = []
     for test in coords_to_test:
@@ -276,11 +257,9 @@ def test_for_snake_head(direction, coords_to_test, snake_heads, data):
 
 # get_snake_heads_to_avoid: checks for other snake headsin all directions
 # my_head: coordinates of my snake head
-# snake_heads: array of all the snake heads on the board
 # data: json structure provided
 # returns: returns an array of bad directions that will encounter snake heads
-def get_snake_heads_to_avoid(my_head, snake_heads, data):
-    my_size = len(data["you"]["body"])
+def get_snake_heads_to_avoid(my_head, data):
     temp = []
     test_areas = []
     test_areas.append((my_head["x"] - 1, my_head["y"]))
@@ -289,7 +268,7 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] - 2, my_head["y"]))
     test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
-    temp = test_for_snake_head("left", test_areas, snake_heads, data)
+    temp = test_for_snake_head("left", test_areas, data)
     test_areas.clear()
     test_areas.append((my_head["x"] + 1, my_head["y"]))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
@@ -297,7 +276,7 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] + 2, my_head["y"]))
     test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
-    temp = temp + test_for_snake_head("right", test_areas, snake_heads, data)
+    temp = temp + test_for_snake_head("right", test_areas, data)
     test_areas.clear()
     test_areas.append((my_head["x"], my_head["y"] - 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
@@ -305,7 +284,7 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"], my_head["y"] - 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
-    temp = temp + test_for_snake_head("up", test_areas, snake_heads, data)
+    temp = temp + test_for_snake_head("up", test_areas, data)
     test_areas.clear()
     test_areas.append((my_head["x"], my_head["y"] + 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
@@ -313,80 +292,25 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"], my_head["y"] + 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
-    temp = temp + test_for_snake_head("down", test_areas, snake_heads, data)
+    temp = temp + test_for_snake_head("down", test_areas, data)
     print("DEBUG: Avoid Head Moves: {}".format(temp))
     return temp
 
-# check_risk_area: calculates a risk factor based on coordinates provided
-# a1, a2, b1, b2: x and y to and from coordinates to scan
-# snake_coords: array of all snake coordinates
-# me: array of my snake
-# snakes: array of all snakes on the board
-# mode: boolean toggle for interpreting x and y dimensions
-# width, height: dimensions of the board
-# returns: calculated risk area
-def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, height):
-    risk = 0
-    fake_area = 0
-    test_coord = None
-    risk_factor = 0
-    for first_loop in range(b1, b2 + 1):
-        if (first_loop < 0):
-            continue
-        if (mode > 0):
-            if (first_loop > height - 1):
-                continue
-        else:   
-            if (first_loop > width - 1):
-                continue
-        for second_loop in range(a1, a2 + 1):
-            if (second_loop < 0):
-                continue
-            if (mode > 0):
-                if (second_loop > height - 1):
-                    continue
-            else:
-                if (second_loop > width - 1):
-                    continue
-            fake_area += 1
-            if (mode > 0):
-                test_coord = (first_loop, second_loop)
-            else:
-                test_coord = (second_loop, first_loop)
-            
-            if (test_coord in snake_coords):
-                risk += 1
-                for snake in snakes:
-                    temp = (snake["body"][0]["x"], snake["body"][0]["y"])
-                    if (temp == test_coord):
-                        otherSnakeSize = len(snake["body"])
-                        if (len(me) < otherSnakeSize):
-                            risk += 5
-                            print("DEBUG: +5 to risk - bigger snake head !")
-    if (risk > 0):
-        risk_factor = risk / fake_area
-    else:
-        risk_factor = 0
-    return risk_factor
-
 # check_risky_business: builds a tuple of move direction and its associated risk score
-# a1, a2, b1, b2: x and y to and from coordinates to scan
+# move: desired move direction to test
 # snake_coords: array of all snake coordinates
 # possible_moves: array of possible moves
 # data: json payload from game
 # width, height: dimensions of the board
 # returns: tuple of move direction and risk score
-def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, data, width, height):
+def check_risky_business(move, snake_coords, possible_moves, data, width, height):
     snakes = data["board"]["snakes"]
-    tup = None
     my_head = data["you"]["body"][0]
+    tup = None
+
     if (move in possible_moves):
-        mode = 1
-        if ((move == "left") or move == "right"): 
-            mode = 0
-        #print("DEBUG: Risk direction being tested: {}".format(move))
-        risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
-        scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data), my_head, data)
+        scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, data)
+        # get the scan value for the supplied move
         sv = 0
         for s in scan:
             if (s[0] == move):
@@ -394,7 +318,7 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 break
         
         move_to_edge = 0
-        mte_factor = 0.1
+        mte_factor = 0.3
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -429,15 +353,18 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
                 r_calc = abs(mid_point - p_to_test)
                 edge_factor = r_calc / height
                 edges_adjust += edge_factor
-        #print(" DEBUG: risky business: {}".format(move))
-        #print("     DEBUG: risk area: {}".format(5*risk_area))
-        #print("     DEBUG: sv: {}".format(sv))
-        #print("     DEBUG: edges adjust: {}".format(0.1 * edges_adjust))
-        #print("     DEBUG: move to edge: {}".format(move_to_edge))
-        #tup = (move, 5-(5*risk_area + 3*sv + 0.6*edges_adjust + move_to_edge))
+        print(" DEBUG: risky business: {}".format(move))
+        print("     DEBUG: sv: {}".format(sv))
+        print("     DEBUG: edges adjust: {}".format(0.1 * edges_adjust))
+        print("     DEBUG: move to edge: {}".format(move_to_edge))
         tup = (move, (sv + 0.1 * edges_adjust + move_to_edge))
     return tup
 
+# get_directions_of_my_tail: builds a list of directions to get to my tail
+# my_head: coordinates of my snake head
+# my_tail: coordinates of my snake tail
+# possible_moves: list of possible moves my snake can make
+# returns: list of possible directions to get to tail
 def get_directions_of_my_tail(my_head, my_tail, possible_moves):
     directions = []
     x = my_head["x"] - my_tail["x"]
@@ -472,67 +399,67 @@ def build_matrix(width, height, data, snake_coords):
                 matrix[x][y] = 'e'
     return matrix
 
-def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails, my_head, data):
+# calculate_risk_factor: helper function to sum risk factors of heads/tails/me
+# test_point: coordinate to test
+# snake_heads: list of snake head coords on the board
+# snake_tails: list of snake tail coords on the board
+# me: snake array of me
+def calculate_risk_factor(test_point, snake_heads, snake_tails, me):
+    retval = 0
+    # scale factor initialization
+    h_f = 10
+    t_f = 5
+    m_f = 0.4
+    if (test_point in snake_heads):
+        retval += h_f
+    elif (test_point in snake_tails):
+        retval -= t_f
+    elif (test_point in me):
+        retval += m_f
+    else:
+        retval += m_f
+    return retval
+
+# scan_matrix: builds a matrix populated with the whereabouts of the snakes
+# width/height: size of the matrix
+# possible_moves: list of possible moves our snake could take
+# data: json payload of game data
+# returns: a list of possible directions and their calculated risk
+def scan_matrix(matrix, width, height, possible_moves, data):
+    retval = []
+    # obtain needed snake info from data
+    snake_heads = get_snake_array(0, data)
+    snake_tails = get_snake_array(-1, data)
+    my_head = data["you"]["body"][0]
+    me = data["you"]["body"]
+    # initalize counter variables
     left = 0
     right = 0
     up = 0
     down = 0
-    me = data["you"]["body"]
     for x in range(width):
         for y in range(height):
             test = (x, y)
             if ((x <= my_head["x"]) and (matrix[x][y] == 's')):
-                if (test in snake_heads):
-                    left += 8
-                elif (test in snake_tails):
-                    left -= 5
-                elif (test in me):
-                    left += 0.4
-                else:
-                    left += 1
+                left += calculate_risk_factor(test, snake_heads, snake_tails, me)
             if ((y >= my_head["y"]) and (matrix[x][y] == 's')):
-                if (test in snake_heads):
-                    down += 8
-                elif (test in snake_tails):
-                    down -= 5
-                elif (test in me):
-                    down += 0.4
-                else:
-                    down += 1
+                down += calculate_risk_factor(test, snake_heads, snake_tails, me)
             if ((y <= my_head["y"]) and (matrix[x][y] == 's')):
-                if (test in snake_heads):
-                    up += 8
-                elif (test in snake_tails):
-                    up -= 5
-                elif (test in me):
-                    up += 0.4
-                else:
-                    up += 1
+                up += calculate_risk_factor(test, snake_heads, snake_tails, me)
             if ((x >= my_head["x"]) and (matrix[x][y] == 's')):
-                if (test in snake_heads):
-                    right += 8
-                elif (test in snake_tails):
-                    right -= 5
-                elif (test in me):
-                    right += 0.4
-                else:
-                    right += 1
-    retval = []
+                right += calculate_risk_factor(test, snake_heads, snake_tails, me)
+
+    scale_factor = 0.01
     if ("left" in possible_moves):
-        #print("SCAN LEFT: {}".format(left*0.01))
-        retval.append(("left", left*0.01))
+        retval.append(("left", left*scale_factor))
     if ("right" in possible_moves):
-        #print("SCAN RIGHT: {}".format(right*0.01))
-        retval.append(("right", right*0.01))
+        retval.append(("right", right*scale_factor))
     if ("up" in possible_moves):
-        #print("SCAN UP: {}".format(up*0.01))
-        retval.append(("up", up*0.01))
+        retval.append(("up", up*scale_factor))
     if ("down" in possible_moves):
-        #print("SCAN DOWN: {}".format(down*0.01))
-        retval.append(("down", down*0.01))
+        retval.append(("down", down*scale_factor))
     
     retval.sort(key=lambda x: x[1])
-    #print("DEBUG: scan matrix: {}".format(retval))
     return retval
 
 # floodfill_algorithm: recusive function to floodfill the provided matrix
@@ -568,14 +495,11 @@ def build_floodfill_move(width, height, snake_coords, data, x, y, test1, test2):
             retval = 0
     return retval
 
-
 # get_ff_size: helper function to get risk score for provided direction
 # direction: desired direction
 # ff_moves: array of flood fill information
 # returns: size of specified flood fill
 def get_ff_size(direction, ff_moves, data):
-    height = data["board"]["height"]
-    width = data["board"]["width"]
     retval = None
     for ff in ff_moves:
         if (ff[0] == direction):
@@ -600,6 +524,7 @@ def check_ff_size(direction, ff_moves, data):
         new_direction = None
     return new_direction
 
+# get_weight: helper function to return the weight for the supplied vote
 def get_weight(weight, vote):
     retval = 0.0
     for x in weight:
@@ -608,6 +533,7 @@ def get_weight(weight, vote):
             break
     return retval
 
+# get_risk: helper function to return the risk value for the supplied move
 def get_risk(move, risk_moves):
     retval = 0.0
     if (move != None):
@@ -617,6 +543,11 @@ def get_risk(move, risk_moves):
                 break
     return retval
 
+# vote: function to tally votes in the supplied list
+# votes_table: dictionary of existing votes
+# votes: new votes to tally and add to votes_table
+# weight: scaling factor to apply to votes
+# returns: updated votes_table
 def vote(votes_table, votes, weight = 1.0):
     for vote in votes:
         if vote in votes_table:
@@ -625,6 +556,11 @@ def vote(votes_table, votes, weight = 1.0):
             votes_table[vote] = weight
     return votes_table
 
+# vote_with_weights: function to tally votes in the supplied list with weights supplied in dictionary
+# votes_table: dictionary of existing votes
+# votes: new votes to tally and add to votes_table
+# weights: dictionary of weights to apply
+# returns: updated votes_table
 def vote_with_weights(votes_table, votes, weights):
     for vote in votes:
         w = get_weight(weights, vote)
@@ -634,6 +570,11 @@ def vote_with_weights(votes_table, votes, weights):
             votes_table[vote] = w
     return votes_table
 
+# vote_with_risk_weights: function to tally votes in the supplied list ordered by risk
+# votes_table: dictionary of existing votes
+# votes: new votes to tally and add to votes_table
+# weights: dictionary of weights to apply
+# returns: updated votes_table
 def vote_with_risk_weights(votes_table, votes, weights):
     i = len(votes_table)
     for vote in votes:
@@ -644,11 +585,9 @@ def vote_with_risk_weights(votes_table, votes, weights):
         i -= 1
     return votes_table
 
+# helper function to return a list of first elements in a dictionary
 def extract_1(lst): 
     return [item[0] for item in lst] 
-
-def extract_2(lst): 
-    return [item[1] for item in lst] 
 
 # make_decision: logic to pick the desired move of the snake
 # preferred_moves: array of the preffered directions to move to get to target
@@ -657,7 +596,7 @@ def extract_2(lst):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
     # final decision
     threshold = 0.197
     #threshold = 0.179
@@ -667,39 +606,19 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     my_size = len(data["you"]["body"])
     my_tail = data["you"]["body"][my_size-1]
     directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-    away_from = which_directions_are_away_from_snake_heads(my_head, snake_heads, data, possible_moves)
+    away_from_heads = which_directions_are_away_from_snake_heads(my_head, data, possible_moves)
     
     votes_table = {}
-    #votes_table = vote(votes_table, preferred_moves)
-    #print(votes_table)
-    votes_table = vote(votes_table, away_from, 1.5)
-    #print(votes_table)
+    votes_table = vote(votes_table, away_from_heads, 1.5)
     votes_table = vote(votes_table, directions_of_my_tail, 1.1)
-    #print(votes_table)
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
-    #print(votes_table)
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
-    #print(votes_table)
-
-    val = None
     if (len(votes_table) > 0):
-        val = max(votes_table, key=votes_table.get)
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
     # preferred direction
-    #preferred_direction = None
-    #for pm in preferred_moves:
-    #    if (preferred_direction == None):
-    #        if pm in possible_moves:
-    #            if (abs(get_risk(preferred_direction, risk_moves)) <= threshold):
-    #                preferred_direction = pm
-    #                print("DEBUG: risk threshold is low enough to go with: {}".format(preferred_direction))
-    #                break
-
-    # preferred direction
     preferred_direction = None
-    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, possible_moves)
-    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
+    print("DEBUG: Directions away bigger snake heads = {}".format(away_from_heads))
     preferred_direction = get_first_common_element(preferred_moves, away_from_heads)
     if (preferred_direction == None):
         for pm in preferred_moves:
@@ -719,15 +638,13 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         else:
             direction = None
             print("DEBUG: Preferred direction too small for snake !! = {}".format(direction))
-            print("DEBUG: FF Size = {}".format(lof))
-            print("DEBUG: My Size = {}".format(my_size))
+            print(" DEBUG: FF Size = {}".format(lof))
+            print(" DEBUG: My Size = {}".format(my_size))
     
     if (direction == None):
-        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
-        #print(newlist)
         # Iterate over the sorted sequence
+        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
         for elem in newlist:
-            #print(elem[0] , " ::" , elem[1] )
             print("DEBUG: Next highest vote = {}".format(elem[0]))
             lof = get_ff_size(elem[0], ff_moves, data)
             if (lof == None):
@@ -788,9 +705,6 @@ def move():
     my_head = data["you"]["body"][0]  
     my_tail = data["you"]["body"][my_size-1]
 
-    # snake bodies
-    snake_heads = get_snake_array(0, data)
-    snake_tails = get_snake_array(-1, data)
     # get details on the shortest snake on the board
     shortest_snake = get_shortest_snake(data)
     shortest_length = len(shortest_snake)
@@ -822,7 +736,7 @@ def move():
         last_ditch_possible_moves.append(pm)
     print("DEBUG: Last Ditch Possible Moves={}".format(last_ditch_possible_moves))
 
-    avoid_heads = get_snake_heads_to_avoid(my_head, snake_heads, data)
+    avoid_heads = get_snake_heads_to_avoid(my_head, data)
     for ah in avoid_heads:
         if (ah in possible_moves):
             possible_moves.remove(ah)
@@ -833,16 +747,16 @@ def move():
 
     # build array of directions sorted by risk level
     risk_moves = []
-    tup = check_risky_business("up", my_head["y"] - 3, my_head["y"], my_head["x"] - 2, my_head["x"] + 2, snake_coords, possible_moves, data, width, height)    
+    tup = check_risky_business("up", snake_coords, possible_moves, data, width, height)    
     if (tup):
         risk_moves.append(tup)
-    tup = check_risky_business("down", my_head["y"] + 1, my_head["y"] + 4, my_head["x"] - 2, my_head["x"] + 2, snake_coords, possible_moves, data, width, height)
+    tup = check_risky_business("down", snake_coords, possible_moves, data, width, height)
     if (tup):
         risk_moves.append(tup)
-    tup = check_risky_business("left", my_head["x"] - 4, my_head["x"] - 1, my_head["y"] - 2, my_head["y"] + 2, snake_coords, possible_moves, data, width, height)    
+    tup = check_risky_business("left", snake_coords, possible_moves, data, width, height)    
     if (tup):
         risk_moves.append(tup)
-    tup = check_risky_business("right", my_head["x"] + 1, my_head["x"] + 4, my_head["y"]-2, my_head["y"]+2, snake_coords, possible_moves, data, width, height)
+    tup = check_risky_business("right", snake_coords, possible_moves, data, width, height)
     if (tup):
         risk_moves.append(tup)
     if len(risk_moves) > 0:
@@ -881,8 +795,8 @@ def move():
     print("DEBUG: FF Fits: {}".format(ff_fits))
 
     # final decision
-    m = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, my_size, data, m, snake_heads, snake_tails)
+    #matrix = build_matrix(width, height, data, snake_coords)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data)
 
     return move_response(direction)
 
