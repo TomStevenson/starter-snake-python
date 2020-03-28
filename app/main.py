@@ -97,14 +97,38 @@ def get_food_list(my_head, data):
     closest = []
     last_score = 999999
     l = []
+    height = data["board"]["height"]
+    width = data["board"]["width"]
+    found = False
     for current_food in data["board"]["food"]:
+        current_distance = [99, 99]
+        #if ((current_food["x"] == 0 and current_food["y"] == 0) or
+        #    (current_food["x"] == (width - 1) and current_food["y"] == (height - 1)) or
+        #    (current_food["x"] == 0 and current_food["y"] == (height - 1)) or
+        #    (current_food["x"] == (width - 1) and current_food["y"] == 0)):
+        if ((current_food["x"] == 0  or
+            (current_food["x"] == (width - 1)) or
+            (current_food["y"] == (height - 1)) or
+            (current_food["y"] == 0))):
+            print("DEBUG: Ignoring food in a corner edges")
+        else:
+            current_distance[0] = abs(my_head["x"] - current_food["x"])
+            current_distance[1] = abs(my_head["y"] - current_food["y"])
+            current_score = current_distance[0] * current_distance[1]
+            if current_score < last_score:
+                closest = current_food
+                last_score = current_score
+                found = True
+    
+    if (found == False):
         current_distance = [99, 99]
         current_distance[0] = abs(my_head["x"] - current_food["x"])
         current_distance[1] = abs(my_head["y"] - current_food["y"])
         current_score = current_distance[0] * current_distance[1]
         if current_score < last_score:
             closest = current_food
-            last_score = current_score 
+            last_score = current_score
+
     l.append(closest)
     return l
 
@@ -642,10 +666,9 @@ def extract_1(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
     my_size = len(data["you"]["body"])
-    #threshold = 0.19
-    #if (my_size > 7):
-    #   threshold = 0.143
-    threshold = 0.213
+    threshold = 0.143
+    if (my_size < 5):
+        threshold = 0.2
 
     direction = None
     
