@@ -682,7 +682,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     away_from_heads = which_directions_are_away_from_snake_heads(my_head, data, possible_moves)
     
     #shd = get_snake_head_danger(my_head, data, possible_moves)
-    print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
+    #print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
 
     votes_table = {}
     votes_table = vote(votes_table, away_from_heads, 1.5)
