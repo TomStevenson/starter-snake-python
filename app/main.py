@@ -81,7 +81,7 @@ def is_snake_longer_than_me(data, snake_head):
     longer_snake = False
     for snake in data["board"]["snakes"]:
         if (snake_head == snake["body"][0]):
-            if (snake != data["you"] and (len(snake["body"]) >= (len(data["you"]["body"]) - 1))):
+            if (snake != data["you"] and (len(snake["body"]) >= (len(data["you"]["body"])))):
                 print("DEBUG: Snake is longer than me !")
                 longer_snake = True
                 break
@@ -250,7 +250,7 @@ def test_for_snake_head(direction, coords_to_test, data):
                 temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                 if (temp == test):
                     other_snake_size = len(snake["body"])
-                    if (my_size < other_snake_size):
+                    if (my_size <= other_snake_size):
                         heads_to_avoid.append(direction)
                         #print("DEBUG: Avoid snake head!")
     return heads_to_avoid
@@ -598,7 +598,7 @@ def extract_1(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
     my_size = len(data["you"]["body"])
-    threshold = 3
+    threshold = 2
     if (my_size > 7):
         threshold = 0.19
     if (my_size > 10):
