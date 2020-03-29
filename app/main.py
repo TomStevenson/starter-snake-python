@@ -666,12 +666,8 @@ def extract_1(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
     my_size = len(data["you"]["body"])
-    threshold = 2
-    if (my_size > 7):
-        threshold = 0.19
+    threshold = 0.17
     if (my_size > 10):
-        threshold = 0.179
-    if (my_size > 18):
         threshold = 0.143
 
     direction = None
@@ -681,15 +677,16 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
     away_from_heads = which_directions_are_away_from_snake_heads(my_head, data, possible_moves)
     
-    #shd = get_snake_head_danger(my_head, data, possible_moves)
-    #print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
+    shd = get_snake_head_danger(my_head, data, possible_moves)
+    print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
 
     votes_table = {}
     votes_table = vote(votes_table, away_from_heads, 1.5)
     votes_table = vote(votes_table, directions_of_my_tail, 1.2)
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
-    #votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
+    if (my_size <= 10):
+        votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
@@ -737,6 +734,18 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 direction = elem[0]
                 print("DEBUG: Next vote fits: {}".format(direction))
                 break
+
+    last_risk = 0
+    last_risk_move = None
+    for rm in risk_moves:
+        current_risk = get_risk(rm[0], risk_moves)
+        if (last_risk != 0):
+            if (current_risk - last_risk >= 0.14):
+                direction = last_risk_move
+                print("DEBUG: Risk override !  Delta between risk options too high.  Picking: {}".format(direction))
+                break
+        last_risk = current_risk
+        last_risk_move = rm[0]
 
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
