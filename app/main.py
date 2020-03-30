@@ -682,8 +682,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     votes_table = vote(votes_table, directions_of_my_tail, 1.2)
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
-    if (my_size <= 15):
-        votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
+    votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
