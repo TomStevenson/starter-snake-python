@@ -552,16 +552,10 @@ def floodfill_algorithm(matrix, x, y, count, snake_coords):
 
 # build_floodfill_move: helper function to call floodfill algorithm
 def build_floodfill_move(width, height, snake_coords, data, x, y, test1, test2):
-    my_size = len(data["you"]["body"])
-    retval = 0
     ff = 0
     if (test1 != test2):
         ff = floodfill_algorithm(build_matrix(width, height, data, snake_coords), x, y, 0, snake_coords)
-        if (ff >= my_size):
-            retval = ff
-        else:
-            retval = 0
-    return retval
+    return ff
 
 # get_ff_size: helper function to get risk score for provided direction
 # direction: desired direction
@@ -583,10 +577,13 @@ def get_ff_size(direction, ff_moves, data):
 def check_ff_size(direction, ff_moves, data):
     my_size = len(data["you"]["body"])
     new_direction = None
-    ff_size = get_ff_size(direction, ff_moves, data)
-    if ((ff_size) >= my_size):
+    ff_size = get_ff_size(direction, ff_moves)
+    if (ff_size >= my_size):
         new_direction = direction
         print("DEBUG: choosing supplied direction: {}".format(new_direction))
+        if (ff_size < 2*my_size):
+            print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
+            direction = None
     else:
         print("DEBUG: Floodfill size in preferred direction too small: {}".format(direction))
         new_direction = None
@@ -685,7 +682,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     votes_table = vote(votes_table, directions_of_my_tail, 1.2)
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
-    if (my_size <= 10):
+    if (my_size <= 15):
         votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
