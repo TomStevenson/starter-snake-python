@@ -666,8 +666,7 @@ def extract_1(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
     my_size = len(data["you"]["body"])
-    #threshold = 1.68
-    threshold = 1.78
+    threshold = 1.87
     
     direction = None
     
@@ -684,8 +683,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
-    if (my_size <= 7):
-        votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
+    #votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
