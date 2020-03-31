@@ -148,7 +148,8 @@ def get_first_common_element(x,y):
 def is_snake_longer_than_me(data, snake_head):
     longer_snake = False
     for snake in data["board"]["snakes"]:
-        if (snake_head == snake["body"][0]):
+        test = (snake["body"][0]["x"], snake["body"][0]["y"])
+        if (snake_head == test):
             if (snake != data["you"] and (len(snake["body"]) >= (len(data["you"]["body"])))):
                 print("DEBUG: Snake is longer than me !")
                 longer_snake = True
@@ -168,22 +169,32 @@ def which_directions_are_away_from_snake_heads(my_head, data, possible_moves):
             x = my_head["x"] - sh[0]
             if (x > 0):
                 if ("right" not in retval):
-                    if ("right" in possible_moves):
-                        retval.append("right")
+                    retval.append("right")
             if (x < 0):
                 if ("left" not in retval):
-                    if ("left" in possible_moves):
-                        retval.append("left")
+                    retval.append("left")
             y = my_head["y"] - sh[1]
             if (y > 0):
                 if ("down" not in retval):
-                    if ("down" in possible_moves):
-                        retval.append("down")
+                    retval.append("down")
             if (y < 0):
                 if ("up" not in retval):
-                    if ("up" in possible_moves):
-                        retval.append("up")
-    return retval
+                    retval.append("up")
+
+    # if we have both opposing directions from multiple snakes, remove them
+    if (("right" in retval) and ("left" in retval)):
+        retval.remove("right")
+        retval.remove("left")
+    if (("up" in retval) and ("down" in retval)):
+        retval.remove("up")
+        retval.remove("down")
+
+    retval1 = []
+    for r in retval:
+        if r in possible_moves:
+            retval1.append(r)
+
+    return retval1
 
 # populate_bad_coords: define perimeter coordinates just outside the board
 # width: width of the board
@@ -425,7 +436,7 @@ def check_risky_business(move, snake_coords, possible_moves, data, width, height
         #print("     DEBUG: sv: {}".format(sv))
         #print("     DEBUG: edges adjust: {}".format(0.1 * edges_adjust))
         #print("     DEBUG: move to edge: {}".format(move_to_edge))
-        tup = (move, (sv + 0.1 * edges_adjust + move_to_edge))
+        tup = (move, 10*(sv + 0.1 * edges_adjust + move_to_edge))
     return tup
 
 # get_directions_of_my_tail: builds a list of directions to get to my tail
@@ -574,20 +585,16 @@ def get_ff_size(direction, ff_moves, data):
 # ff_moves: array of flood fill information
 # my_size: size of me (my snake)
 # returns: validated direction of legal move
-def check_ff_size(direction, ff_moves, data):
+def check_ff_size(direction, ff_fits, data):
+    retval = False
     my_size = len(data["you"]["body"])
     new_direction = None
-    ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size >= my_size):
-        new_direction = direction
-        print("DEBUG: choosing supplied direction: {}".format(new_direction))
-        if (ff_size < 2*my_size):
-            print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
-            direction = None
-    else:
-        print("DEBUG: Floodfill size in preferred direction too small: {}".format(direction))
-        new_direction = None
-    return new_direction
+    for ff in ff_fits:
+        if (ff[0] == direction):
+            if (ff[1] > 0.0):
+                retval = True
+                break
+    return retval
 
 # get_weight: helper function to return the weight for the supplied vote
 def get_weight(weight, vote):
@@ -635,21 +642,6 @@ def vote_with_weights(votes_table, votes, weights):
             votes_table[vote] = w
     return votes_table
 
-# vote_with_risk_weights: function to tally votes in the supplied list ordered by risk
-# votes_table: dictionary of existing votes
-# votes: new votes to tally and add to votes_table
-# weights: dictionary of weights to apply
-# returns: updated votes_table
-def vote_with_risk_weights(votes_table, votes, weights):
-    i = len(votes_table)
-    for vote in votes:
-        if vote in votes_table:
-            votes_table[vote] += i
-        else:
-            votes_table[vote] = i
-        i -= 1
-    return votes_table
-
 # helper function to return a list of first elements in a dictionary
 def extract_1(lst): 
     return [item[0] for item in lst] 
@@ -663,10 +655,9 @@ def extract_1(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
     my_size = len(data["you"]["body"])
-    threshold = 0.17
-    if (my_size > 10):
-        threshold = 0.143
-
+    #threshold = 1.68
+    threshold = 1.89
+    
     direction = None
     
     my_head = data["you"]["body"][0]
@@ -679,9 +670,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     votes_table = {}
     votes_table = vote(votes_table, away_from_heads, 1.5)
-    votes_table = vote(votes_table, directions_of_my_tail, 1.2)
+    votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits)
-    votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
+    votes_table = vote_with_weights(votes_table, extract_1(risk_moves), risk_moves)
+    #if (my_size <= 15):
     votes_table = vote_with_weights(votes_table, extract_1(shd), shd)
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
@@ -694,24 +686,18 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         for pm in preferred_moves:
             risk_thresh = abs(get_risk(pm, risk_moves))
             if (risk_thresh <= threshold):
-                preferred_direction = pm
-                print("DEBUG: risk threshold is low enough to go with: {}".format(preferred_direction))
-                print(" DEBUG: risk threshold: {}".format(risk_thresh))
-                break
-    
-    if (preferred_direction != None):
-        lof = get_ff_size(preferred_direction, ff_moves, data)
-        if (lof == None):
-            direction = None
-            print("DEBUG: Not an FF option - keep looking = {}".format(preferred_direction))
-        elif (lof >= (my_size - 1.0)):
+                if (check_ff_size(pm, ff_fits, data)):
+                    print("DEBUG: risk threshold is low enough to go with: {}".format(pm))
+                    print(" DEBUG: risk threshold: {}".format(risk_thresh))
+                    direction = pm
+                    break
+    else:
+        if (check_ff_size(preferred_direction, ff_fits, data)):
+            print("DEBUG: Found a preferred move away from snake heads that fits = {}".format(preferred_direction))
             direction = preferred_direction
-            print("DEBUG: Choosing Preferred direction = {}".format(direction))
         else:
             direction = None
-            print("DEBUG: Preferred direction too small for snake !! = {}".format(direction))
-            print(" DEBUG: FF Size = {}".format(lof))
-            print(" DEBUG: My Size = {}".format(my_size))
+            print("DEBUG: Preferred direction too small for snake !! = {}".format(preferred_direction))
     
     if (direction == None):
         # Iterate over the sorted sequence
@@ -720,28 +706,22 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             print("DEBUG: Next highest vote = {}".format(elem[0]))
             lof = get_ff_size(elem[0], ff_moves, data)
             if (lof == None):
-                if (direction == None):
-                    # only update direction if wasn't set on previous iteration
-                    print("DEBUG: No flood fill size - not a good sign")
-                    if (elem[0] in possible_moves):
-                        direction = elem[0]
-                        print("DEBUG: Move is possible - taking a chance, but still looking")
+                # only update direction if wasn't set on previous iteration
+                print("DEBUG: No flood fill size - not a good sign")
+                if (elem[0] in possible_moves):
+                    direction = elem[0]
+                    print("DEBUG: Move is possible - taking a chance, but still looking")
             elif (lof >= (my_size - 1.0)):
                 direction = elem[0]
                 print("DEBUG: Next vote fits: {}".format(direction))
                 break
-
-    last_risk = 0
-    last_risk_move = None
-    for rm in risk_moves:
-        current_risk = get_risk(rm[0], risk_moves)
-        if (last_risk != 0):
-            if (current_risk - last_risk >= 0.14):
-                direction = last_risk_move
-                print("DEBUG: Risk override !  Delta between risk options too high.  Picking: {}".format(direction))
-                break
-        last_risk = current_risk
-        last_risk_move = rm[0]
+            else:
+                print("DEBUG: Size is: {}".format(lof))
+                if (lof >= 3):
+                    if (elem[0] in directions_of_my_tail):
+                        direction = elem[0]
+                        print("DEBUG: Taking a chance, too small but in direction of tail: {}".format(direction))
+                        break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
@@ -752,7 +732,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 print("DEBUG: Almost last resort - pick lowest risk: {}".format(direction))
                 break
         else:
-            print("DEBUG: Almost last resort - pick direction of tail: {}".format(direction))
+            for ff in ff_moves:
+                direction = ff[0]
+                print("DEBUG: Almost last resort - pick largest ff: {}".format(direction))
+                break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
@@ -855,29 +838,25 @@ def move():
     ff_moves = []
     ff_fits = []
     if ("up" in possible_moves):
-        if ("up" in possible_moves):
-            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
-            ff_moves.append(("up", val))
-            if (val > 0):
-                ff_fits.append(("up", 1.0))
+        val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
+        ff_moves.append(("up", val))
+        if (val > (my_size - 1)):
+            ff_fits.append(("up", 1.0))
     if ("down" in possible_moves):
-        if ("down" in possible_moves):
-            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)
-            ff_moves.append(("down", val))
-            if (val > 0):
-                ff_fits.append(("down", 1.0))
+        val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)
+        ff_moves.append(("down", val))
+        if (val > (my_size - 1)):
+            ff_fits.append(("down", 1.0))
     if ("left" in possible_moves):
-        if ("left" in possible_moves):
-            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)
-            ff_moves.append(("left", val))
-            if (val > 0):
-                ff_fits.append(("left", 1.0))
+        val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)
+        ff_moves.append(("left", val))
+        if (val > (my_size - 1)):
+            ff_fits.append(("left", 1.0))
     if ("right" in possible_moves):
-        if ("right" in possible_moves):
-            val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
-            ff_moves.append(("right", val))
-            if (val > 0):
-                ff_fits.append(("right", 1.0))        
+        val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
+        ff_moves.append(("right", val))
+        if (val > (my_size - 1)):
+            ff_fits.append(("right", 1.0))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
     print("DEBUG: FF Moves: {}".format(ff_moves))
     print("DEBUG: FF Fits: {}".format(ff_fits))
