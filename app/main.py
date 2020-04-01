@@ -828,7 +828,7 @@ def move():
     # build array of sizes of empty squares in flood fill of all four directions
     ff_moves = []
     ff_fits = []
-    factor = 0.75
+    factor = 0.90
     if ("up" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
         ff_moves.append(("up", val))
