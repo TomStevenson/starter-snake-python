@@ -688,7 +688,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("DEBUG: Tail Moves!: {}".format(tm))
     
     votes_table = {}
-    votes_table = vote(votes_table, preferred_moves, 3.0)
+    votes_table = vote(votes_table, preferred_moves, 3.2)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.75)
     print("Tail: {}".format(votes_table))
@@ -711,6 +711,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         for elem in newlist:
             print("DEBUG: Highest vote = {}".format(elem[0]))
             if (elem[0] in possible_moves):
+                    if (check_ff_size(elem[0], ff_fits, data) == True):
+                        direction = elem[0]
+                        break  
+    
+    if (direction == None):
+        for elem in newlist:
+            print("DEBUG: Last Ditch Highest vote = {}".format(elem[0]))
+            if (elem[0] in last_ditch_possible_moves):
                 direction = elem[0]
                 break
 
