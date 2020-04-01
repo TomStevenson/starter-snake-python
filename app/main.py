@@ -688,7 +688,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("DEBUG: Tail Moves!: {}".format(tm))
     
     votes_table = {}
-    votes_table = vote(votes_table, preferred_moves, 3.2)
+    votes_table = vote(votes_table, preferred_moves, 3.3)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.75)
     print("Tail: {}".format(votes_table))
@@ -700,7 +700,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, away_from_heads, 0.4)
     print("Away From Heads: {}".format(votes_table))
-    votes_table = vote(votes_table, tm, 2.2)
+    votes_table = vote(votes_table, tm, 2.4)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
