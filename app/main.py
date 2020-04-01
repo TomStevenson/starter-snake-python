@@ -102,9 +102,6 @@ def get_food_list(my_head, data):
     closest = []
     last_score = 999999
     l = []
-    height = data["board"]["height"]
-    width = data["board"]["width"]
-
     for current_food in data["board"]["food"]:
         current_distance = [99, 99]
         current_distance[0] = abs(my_head["x"] - current_food["x"])
@@ -385,7 +382,7 @@ def check_risky_business(move, snake_coords, possible_moves, data, width, height
                 break
         
         move_to_edge = 0
-        mte_factor = 0.6
+        mte_factor = 0.2
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -424,7 +421,7 @@ def check_risky_business(move, snake_coords, possible_moves, data, width, height
         #print("     DEBUG: sv: {}".format(sv))
         #print("     DEBUG: edges adjust: {}".format(0.1 * edges_adjust))
         #print("     DEBUG: move to edge: {}".format(move_to_edge))
-        tup = (move, 10*(sv + edges_adjust*1.1 + move_to_edge))
+        tup = (move, 10*(sv + edges_adjust*0.9 + move_to_edge))
     return tup
 
 # get_directions_of_my_tail: builds a list of directions to get to my tail
@@ -499,6 +496,7 @@ def scan_matrix(matrix, width, height, possible_moves, data):
     snake_tails = get_snake_array(-1, data)
     my_head = data["you"]["body"][0]
     me = data["you"]["body"]
+    number_of_active_snakes = len(data["board"]["snakes"])
     # initalize counter variables
     left = 0
     right = 0
@@ -518,15 +516,37 @@ def scan_matrix(matrix, width, height, possible_moves, data):
 
     scale_factor = 0.01
     if ("left" in possible_moves):
-        retval.append(("left", left*scale_factor))
+        retval.append(("left", left*scale_factor/number_of_active_snakes))
     if ("right" in possible_moves):
-        retval.append(("right", right*scale_factor))
+        retval.append(("right", right*scale_factor/number_of_active_snakes))
     if ("up" in possible_moves):
-        retval.append(("up", up*scale_factor))
+        retval.append(("up", up*scale_factor/number_of_active_snakes))
     if ("down" in possible_moves):
-        retval.append(("down", down*scale_factor))
+        retval.append(("down", down*scale_factor/number_of_active_snakes))
     
     retval.sort(key=lambda x: x[1])
+    return retval
+
+
+def is_move_my_tail(my_head, my_tail, my_size):
+    retval = []
+    if ((my_head != my_tail) and (my_size > 3)):
+        # get coords of tail
+        tail = (my_tail["x"], my_tail["y"])
+        # build test points
+        up = (my_head["x"], my_head["y"] - 1)
+        down = (my_head["x"], my_head["y"] + 1)
+        left = (my_head["x"] - 1, my_head["y"])
+        right = (my_head["x"] + 1, my_head["y"])
+        #test points
+        if (up == tail):
+            retval.append("up")
+        if (down == tail):
+            retval.append("down")
+        if (left == tail):
+            retval.append("left")
+        if (right == tail):
+            retval.append("right")
     return retval
 
 # floodfill_algorithm: recusive function to floodfill the provided matrix
@@ -575,7 +595,6 @@ def get_ff_size(direction, ff_moves, data):
 # returns: validated direction of legal move
 def check_ff_size(direction, ff_fits, data):
     retval = False
-    my_size = len(data["you"]["body"])
     for ff in ff_fits:
         if (ff[0] == direction):
             if (ff[1] > 0.0):
@@ -598,7 +617,7 @@ def get_risk(move, risk_moves):
     if (move != None):
         for rm in risk_moves:
             if (rm[0] == move):
-                retval = rm[1] * 1.0
+                retval = rm[1] * 1.1
                 break
     return retval
 
@@ -633,10 +652,10 @@ def vote_with_risk_weights(votes_table, votes, weights):
     c = 0
     for vote in votes:
         w = get_weight(weights, vote)
-        if (w > 3):
+        if (w > 3.2):
             c = 0.0
         else:
-            c = 3.0 - w
+            c = 3.2 - w
         if vote in votes_table:
             votes_table[vote] += c
         else:
@@ -665,19 +684,24 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     
     shd = get_snake_head_danger(my_head, data, possible_moves)
     print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
-
+    tm = is_move_my_tail(my_head, my_tail, my_size)
+    print("DEBUG: Tail Moves!: {}".format(tm))
+    
     votes_table = {}
-    votes_table = vote(votes_table, preferred_moves, 2.55)
+    votes_table = vote(votes_table, preferred_moves, 3.0)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.75)
     print("Tail: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits, 3.3)
+    votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits, 6)
     print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 0.4)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, away_from_heads, 0.4)
+    print("Away From Heads: {}".format(votes_table))
+    votes_table = vote(votes_table, tm, 2.2)
+    print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
@@ -686,8 +710,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
         for elem in newlist:
             print("DEBUG: Highest vote = {}".format(elem[0]))
-            direction = elem[0]
-            break
+            if (elem[0] in possible_moves):
+                direction = elem[0]
+                break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
@@ -826,6 +851,28 @@ def move():
                 max_ff = fm[1]
                 max_dir = fm[0]
         ff_fits.append((max_dir, 1.0))
+
+    last_val = 0
+    count = 0
+    same = 0
+    sss = []
+    if (len(ff_fits) > 1):
+        for fm in ff_moves:
+            if (count == 0):
+                last_val = fm[1]
+            
+            if (fm[1] == last_val):
+                same = 1
+                sss.append(fm[0])
+            else:
+                same = 0
+                break
+            last_val = fm[1]
+            count += 1
+    
+    for ss in sss:
+        if ss in ff_fits:
+            ff_fits.remove(ss)
 
     print("DEBUG: FF Moves: {}".format(ff_moves))
     print("DEBUG: FF Fits: {}".format(ff_fits))
