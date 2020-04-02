@@ -688,7 +688,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("DEBUG: Tail Moves!: {}".format(tm))
     
     votes_table = {}
-    votes_table = vote(votes_table, preferred_moves, 3.3)
+    votes_table = vote(votes_table, preferred_moves, 3.2)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.75)
     print("Tail: {}".format(votes_table))
@@ -700,7 +700,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, away_from_heads, 0.4)
     print("Away From Heads: {}".format(votes_table))
-    votes_table = vote(votes_table, tm, 2.4)
+    votes_table = vote(votes_table, tm, 2.2)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
@@ -828,7 +828,7 @@ def move():
     # build array of sizes of empty squares in flood fill of all four directions
     ff_moves = []
     ff_fits = []
-    factor = 0.90
+    factor = 0.95
     if ("up" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
         ff_moves.append(("up", val))
@@ -837,17 +837,17 @@ def move():
     if ("down" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)
         ff_moves.append(("down", val))
-        if (val > (my_size*0.75)):
+        if (val > (my_size*factor)):
             ff_fits.append(("down", 1.0))
     if ("left" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)
         ff_moves.append(("left", val))
-        if (val > (my_size*0.75)):
+        if (val > (my_size*factor)):
             ff_fits.append(("left", 1.0))
     if ("right" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
         ff_moves.append(("right", val))
-        if (val > (my_size*0.75)):
+        if (val > (my_size*factor)):
             ff_fits.append(("right", 1.0))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
 
