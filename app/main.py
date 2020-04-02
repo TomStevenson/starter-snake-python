@@ -57,31 +57,27 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     up = 0
     down = 0
     for snake in data["board"]["snakes"]:
-        if (len(snake["body"]) >= (len(data["you"]["body"]))):
-            if (snake != data["you"]):
-                the_x = snake_head["x"] - snake["body"][0]["x"]
-                if (the_x > 0):
-                    left += the_x
-                else:
-                    right += abs(the_x)
-                the_y = snake_head["y"] - snake["body"][0]["y"]
-                if (the_y > 0):
-                    up += the_y
-                else:
-                    down += abs(the_y)
+        if (snake != data["you"]):
+            the_x = snake_head["x"] - snake["body"][0]["x"]
+            if (the_x > 0):
+                left += the_x
+            else:
+                right += abs(the_x)
+            the_y = snake_head["y"] - snake["body"][0]["y"]
+            if (the_y > 0):
+                up += the_y
+            else:
+                down += abs(the_y)
 
-    if ("left" in possible_moves):
-        if (left > 0):
-            retval.append(("left", 1.0))
-    if ("right" in possible_moves):
-        if (right > 0):
-            retval.append(("right", 1.0))
-    if ("up" in possible_moves):
-        if (up > 0):
-            retval.append(("up", 1.0))
-    if ("down" in possible_moves):
-        if (down > 0):
-            retval.append(("down", 1.0))
+   
+    if (left > 0):
+        retval.append(("left", 1.0))
+    if (right > 0):
+        retval.append(("right", 1.0))
+    if (up > 0):
+        retval.append(("up", 1.0))
+    if (down > 0):
+        retval.append(("down", 1.0))
 
     # if we have both opposing directions from multiple snakes, remove them
     if (("right" in retval) and ("left" in retval)):
@@ -91,8 +87,13 @@ def get_snake_head_danger(snake_head, data, possible_moves):
         retval.remove("up")
         retval.remove("down")
 
-    retval.sort(key=lambda x: x[1])
-    return retval
+    retval1 = []
+    for r in retval:
+        if r in possible_moves:
+            retval1.append(r)
+            
+    retval1.sort(key=lambda x: x[1])
+    return retval1
 
 # get_food_list: scans the food array and finds the closest food to my snake head
 # my_head: coordinates of my snake head to be used as the reference point to food
@@ -137,46 +138,6 @@ def is_snake_longer_than_me(data, snake_head):
                 longer_snake = True
                 break
     return longer_snake
-
-# which_directions_are_away_from_snake_heads: helper function that determines directions away from bigger snakes
-# my_head: coordinates of my snake head
-# data: game data to obtain snakes, my snake information from
-# possible_moves: list of the possible moves the snake can make
-# returns: True if snake_head snake is longer than me, False otherwise
-def which_directions_are_away_from_snake_heads(my_head, data, possible_moves):
-    retval = []
-    snake_heads = get_snake_array(0, data)
-    for sh in snake_heads:
-        if (is_snake_longer_than_me(data, sh)):
-            x = my_head["x"] - sh[0]
-            if (x > 0):
-                if ("right" not in retval):
-                    retval.append("right")
-            if (x < 0):
-                if ("left" not in retval):
-                    retval.append("left")
-            y = my_head["y"] - sh[1]
-            if (y > 0):
-                if ("down" not in retval):
-                    retval.append("down")
-            if (y < 0):
-                if ("up" not in retval):
-                    retval.append("up")
-
-    # if we have both opposing directions from multiple snakes, remove them
-    if (("right" in retval) and ("left" in retval)):
-        retval.remove("right")
-        retval.remove("left")
-    if (("up" in retval) and ("down" in retval)):
-        retval.remove("up")
-        retval.remove("down")
-
-    retval1 = []
-    for r in retval:
-        if r in possible_moves:
-            retval1.append(r)
-
-    return retval1
 
 # populate_bad_coords: define perimeter coordinates just outside the board
 # width: width of the board
@@ -680,7 +641,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     my_head = data["you"]["body"][0]
     my_tail = data["you"]["body"][my_size-1]
     directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-    away_from_heads = which_directions_are_away_from_snake_heads(my_head, data, possible_moves)
     
     shd = get_snake_head_danger(my_head, data, possible_moves)
     print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
@@ -688,7 +648,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("DEBUG: Tail Moves!: {}".format(tm))
     
     votes_table = {}
-    votes_table = vote(votes_table, preferred_moves, 3.2)
+    votes_table = vote(votes_table, preferred_moves, 3.5)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.75)
     print("Tail: {}".format(votes_table))
@@ -696,10 +656,8 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 0.4)
+    votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 2.0)
     print("Snake Head Danger: {}".format(votes_table))
-    votes_table = vote(votes_table, away_from_heads, 0.4)
-    print("Away From Heads: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 2.2)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
@@ -713,7 +671,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (elem[0] in possible_moves):
                     if (check_ff_size(elem[0], ff_fits, data) == True):
                         direction = elem[0]
-                        break  
+                        break
+                    elif (elem[0] in tm):
+                        direction = elem[0]
+                        break 
     
     if (direction == None):
         for elem in newlist:
