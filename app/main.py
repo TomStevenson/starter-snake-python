@@ -57,17 +57,18 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     up = 0
     down = 0
     for snake in data["board"]["snakes"]:
-        if (snake != data["you"]):
-            the_x = snake_head["x"] - snake["body"][0]["x"]
-            if (the_x > 0):
-                left += the_x
-            else:
-                right += abs(the_x)
-            the_y = snake_head["y"] - snake["body"][0]["y"]
-            if (the_y > 0):
-                up += the_y
-            else:
-                down += abs(the_y)
+        if (len(snake["body"]) >= (len(data["you"]["body"]))):
+            if (snake != data["you"]):
+                the_x = snake_head["x"] - snake["body"][0]["x"]
+                if (the_x > 0):
+                    left += the_x
+                else:
+                    right += abs(the_x)
+                the_y = snake_head["y"] - snake["body"][0]["y"]
+                if (the_y > 0):
+                    up += the_y
+                else:
+                    down += abs(the_y)
 
    
     if (left > 0):
@@ -656,7 +657,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 2.0)
+    votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 0.5)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 2.2)
     print("Tail Move !: {}".format(votes_table))
