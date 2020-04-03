@@ -664,7 +664,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size < 7):
+    if (my_size < 10):
         temp = get_first_common_element(preferred_moves, shd)
         for rm in risk_moves:
             if (rm[0] == temp):
