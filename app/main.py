@@ -57,20 +57,19 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     up = 0
     down = 0
     for snake in data["board"]["snakes"]:
-        if (len(snake["body"]) >= (len(data["you"]["body"]))):
-            if (snake != data["you"]):
-                the_x = snake_head["x"] - snake["body"][0]["x"]
-                if (the_x > 0):
-                    left += the_x
-                else:
-                    right += abs(the_x)
-                the_y = snake_head["y"] - snake["body"][0]["y"]
-                if (the_y > 0):
-                    up += the_y
-                else:
-                    down += abs(the_y)
+    #    if (len(snake["body"]) >= (len(data["you"]["body"]))):
+        if (snake != data["you"]):
+            the_x = snake_head["x"] - snake["body"][0]["x"]
+            if (the_x > 0):
+                right += the_x
+            else:
+                left += abs(the_x)
+            the_y = snake_head["y"] - snake["body"][0]["y"]
+            if (the_y > 0):
+                down += the_y
+            else:
+                up += abs(the_y)
 
-   
     if (left > 0):
         retval.append(("left", 1.0))
     if (right > 0):
@@ -87,14 +86,9 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     if (("up" in retval) and ("down" in retval)):
         retval.remove("up")
         retval.remove("down")
-
-    retval1 = []
-    for r in retval:
-        if r in possible_moves:
-            retval1.append(r)
             
-    retval1.sort(key=lambda x: x[1])
-    return retval1
+    retval.sort(key=lambda x: x[1])
+    return retval
 
 # get_food_list: scans the food array and finds the closest food to my snake head
 # my_head: coordinates of my snake head to be used as the reference point to food
@@ -657,7 +651,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 0.5)
+    votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 0.75)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 2.2)
     print("Tail Move !: {}".format(votes_table))
@@ -665,13 +659,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
     if (my_size < 5):
-        temp = get_first_common_element(preferred_moves, shd)
-        for rm in risk_moves:
-            if (rm[0] == temp):
-                if (rm[1] <= 0.25):
-                    direction = temp
-                    print("DEBUG: Small snake, picking = {}".format(direction))
-                    break
+        for pm in preferred_moves:
+            temp = pm
+            for rm in risk_moves:
+                if (rm[0] == temp):
+                    if (rm[1] <= 0.4):
+                        direction = temp
+                        print("DEBUG: Small snake, picking = {}".format(direction))
+                        break
 
     if (direction == None):
         # Iterate over the sorted sequence
@@ -685,13 +680,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                     elif (elem[0] in tm):
                         direction = elem[0]
                         break 
-    
-    if (direction == None):
-        for elem in newlist:
-            print("DEBUG: Last Ditch Highest vote = {}".format(elem[0]))
-            if (elem[0] in last_ditch_possible_moves):
-                direction = elem[0]
-                break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
