@@ -45,6 +45,19 @@ def start():
 
     return start_response(color)
 
+def convert_snake_head_danger(snake_head_danger):
+    retval = []
+    for shd in snake_head_danger:
+        if (shd == "left"):
+            retval.append("right")
+        if (shd == "right"):
+            retval.append("left")
+        if (shd == "up"):
+            retval.append("down")
+        if (shd == "down"):
+            retval.append("up")
+    return retval
+
 # get_snake_head_danger: scans the board and calculates proximity of snake heads
 # my_head: coordinates of my snake head to be used as the reference point to food
 # data: generic game data to get the food list from
@@ -61,15 +74,16 @@ def get_snake_head_danger(snake_head, data, possible_moves):
             if (snake != data["you"]):
                 the_x = snake_head["x"] - snake["body"][0]["x"]
                 if (the_x > 0):
-                    right += the_x
+                    left += the_x
                 else:
-                    left += abs(the_x)
+                    right += abs(the_x)
                 the_y = snake_head["y"] - snake["body"][0]["y"]
                 if (the_y > 0):
-                    down += the_y
+                    up += the_y
                 else:
-                    up += abs(the_y)
+                    down += abs(the_y)
 
+   
     if (left > 0):
         retval.append(("left", 1.0))
     if (right > 0):
@@ -86,9 +100,14 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     if (("up" in retval) and ("down" in retval)):
         retval.remove("up")
         retval.remove("down")
+
+    retval1 = []
+    for r in retval:
+        if r in possible_moves:
+            retval1.append(r)
             
-    retval.sort(key=lambda x: x[1])
-    return retval
+    retval1.sort(key=lambda x: x[1])
+    return retval1
 
 # get_food_list: scans the food array and finds the closest food to my snake head
 # my_head: coordinates of my snake head to be used as the reference point to food
@@ -639,34 +658,36 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     
     shd = get_snake_head_danger(my_head, data, possible_moves)
     print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
+
+    shd2 = convert_snake_head_danger(shd)
+
     tm = is_move_my_tail(my_head, my_tail, my_size)
     print("DEBUG: Tail Moves!: {}".format(tm))
     
     votes_table = {}
     votes_table = vote(votes_table, preferred_moves, 3.5)
     print("Preferred: {}".format(votes_table))
-    votes_table = vote(votes_table, directions_of_my_tail, 0.75)
+    votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     print("Tail: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits, 6)
     print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd), shd, 0.75)
+    votes_table = vote_with_weights(votes_table, extract_1(shd), shd2, 0.5)
     print("Snake Head Danger: {}".format(votes_table))
-    votes_table = vote(votes_table, tm, 2.2)
+    votes_table = vote(votes_table, tm, 2.4)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
     if (my_size < 5):
-        for pm in preferred_moves:
-            temp = pm
-            for rm in risk_moves:
-                if (rm[0] == temp):
-                    if (rm[1] <= 0.4):
-                        direction = temp
-                        print("DEBUG: Small snake, picking = {}".format(direction))
-                        break
+        temp = get_first_common_element(preferred_moves, shd)
+        for rm in risk_moves:
+            if (rm[0] == temp):
+                if (rm[1] <= 0.25):
+                    direction = temp
+                    print("DEBUG: Small snake, picking = {}".format(direction))
+                    break
 
     if (direction == None):
         # Iterate over the sorted sequence
