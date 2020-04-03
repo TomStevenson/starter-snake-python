@@ -57,18 +57,18 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     up = 0
     down = 0
     for snake in data["board"]["snakes"]:
-    #    if (len(snake["body"]) >= (len(data["you"]["body"]))):
-        if (snake != data["you"]):
-            the_x = snake_head["x"] - snake["body"][0]["x"]
-            if (the_x > 0):
-                right += the_x
-            else:
-                left += abs(the_x)
-            the_y = snake_head["y"] - snake["body"][0]["y"]
-            if (the_y > 0):
-                down += the_y
-            else:
-                up += abs(the_y)
+        if (len(snake["body"]) >= (len(data["you"]["body"]))):
+            if (snake != data["you"]):
+                the_x = snake_head["x"] - snake["body"][0]["x"]
+                if (the_x > 0):
+                    right += the_x
+                else:
+                    left += abs(the_x)
+                the_y = snake_head["y"] - snake["body"][0]["y"]
+                if (the_y > 0):
+                    down += the_y
+                else:
+                    up += abs(the_y)
 
     if (left > 0):
         retval.append(("left", 1.0))
