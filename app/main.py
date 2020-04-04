@@ -48,14 +48,14 @@ def start():
 def convert_snake_head_danger(snake_head_danger):
     retval = []
     for shd in snake_head_danger:
-        if (shd == "left"):
-            retval.append("right")
-        if (shd == "right"):
-            retval.append("left")
-        if (shd == "up"):
-            retval.append("down")
-        if (shd == "down"):
-            retval.append("up")
+        if (shd[0] == "left"):
+            retval.append(("right", shd[1]))
+        if (shd[0] == "right"):
+            retval.append(("left", shd[1]))
+        if (shd[0] == "up"):
+            retval.append(("down", shd[1]))
+        if (shd[0] == "down"):
+            retval.append(("up", shd[1]))
     return retval
 
 # get_snake_head_danger: scans the board and calculates proximity of snake heads
@@ -69,6 +69,7 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     right = 0
     up = 0
     down = 0
+    number_of_active_snakes = len(data["board"]["snakes"])
     for snake in data["board"]["snakes"]:
         if (len(snake["body"]) >= (len(data["you"]["body"]))):
             if (snake != data["you"]):
@@ -83,7 +84,6 @@ def get_snake_head_danger(snake_head, data, possible_moves):
                 else:
                     down += abs(the_y)
 
-   
     if (left > 0):
         retval.append(("left", 1.0))
     if (right > 0):
@@ -93,18 +93,37 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     if (down > 0):
         retval.append(("down", 1.0))
 
-    # if we have both opposing directions from multiple snakes, remove them
-    if (("right" in retval) and ("left" in retval)):
-        retval.remove("right")
-        retval.remove("left")
-    if (("up" in retval) and ("down" in retval)):
-        retval.remove("up")
-        retval.remove("down")
+    
+    if (left/number_of_active_snakes <= 2):
+        left = 1
+    else:
+        left = 0
+    
+    if (right/number_of_active_snakes <= 2):
+        right = 1
+    else:
+        right = 0
+    
+    if (up/number_of_active_snakes <= 2):
+        up = 1
+    else:
+        up = 0
+
+    if (down/number_of_active_snakes <= 2):
+        down = 1
+    else:
+        down = 0
 
     retval1 = []
     for r in retval:
-        if r in possible_moves:
-            retval1.append(r)
+        if (r[0] == "left"):
+            retval1.append(("left", left))
+        if (r[0] == "right"):
+            retval1.append(("right", right))
+        if (r[0] == "up"):
+            retval1.append(("up", up))
+        if (r[0] == "down"):
+            retval1.append(("down", down))
             
     retval1.sort(key=lambda x: x[1])
     return retval1
@@ -657,10 +676,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
     
     shd = get_snake_head_danger(my_head, data, possible_moves)
-    print("DEBUG: Preferred moves away from snake head danger: {}".format(shd))
-
     shd2 = convert_snake_head_danger(shd)
-
+    print("DEBUG: Preferred moves away from snake head danger: {}".format(shd2))
+    
     tm = is_move_my_tail(my_head, my_tail, my_size)
     print("DEBUG: Tail Moves!: {}".format(tm))
     
@@ -673,18 +691,18 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd), shd2, 0.5)
+    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 2)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 2.4)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size < 5):
-        temp = get_first_common_element(preferred_moves, shd)
+    if (my_size <= 5):
+        temp = get_first_common_element(preferred_moves, possible_moves)
         for rm in risk_moves:
             if (rm[0] == temp):
-                if (rm[1] <= 0.25):
+                if (rm[1] <= 0.6):
                     direction = temp
                     print("DEBUG: Small snake, picking = {}".format(direction))
                     break
