@@ -714,14 +714,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 2.5)
+    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 2.75)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 1.75)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size <= 6):
+    if (my_size <= 5):
         for pm in preferred_moves:
             direction = pm
             print("DEBUG: Small snake, picking = {}".format(direction))
