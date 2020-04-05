@@ -94,22 +94,22 @@ def get_snake_head_danger(snake_head, data, possible_moves):
         retval.append(("down", 1.0))
 
     
-    if (left/number_of_active_snakes <= 2):
+    if (left/number_of_active_snakes <= 5):
         left = 1
     else:
         left = 0
     
-    if (right/number_of_active_snakes <= 2):
+    if (right/number_of_active_snakes <= 5):
         right = 1
     else:
         right = 0
     
-    if (up/number_of_active_snakes <= 2):
+    if (up/number_of_active_snakes <= 5):
         up = 1
     else:
         up = 0
 
-    if (down/number_of_active_snakes <= 2):
+    if (down/number_of_active_snakes <= 5):
         down = 1
     else:
         down = 0
@@ -313,7 +313,7 @@ def test_for_snake_head(direction, coords_to_test, data):
                         #print("DEBUG: Avoid snake head!")
     return heads_to_avoid
 
-# get_snake_heads_to_avoid: checks for other snake headsin all directions
+# get_snake_heads_to_avoid: checks for other snake heads in all directions
 # my_head: coordinates of my snake head
 # data: json structure provided
 # returns: returns an array of bad directions that will encounter snake heads
@@ -323,6 +323,8 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"] - 1, my_head["y"]))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
+    test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
+    test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] - 2, my_head["y"]))
     test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
@@ -331,6 +333,8 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"] + 1, my_head["y"]))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 1))
+    test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
+    test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] + 2, my_head["y"]))
     test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
@@ -339,6 +343,8 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"], my_head["y"] - 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
+    test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
+    test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
     test_areas.append((my_head["x"], my_head["y"] - 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
@@ -347,6 +353,8 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"], my_head["y"] + 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 1))
+    test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
+    test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
     test_areas.append((my_head["x"], my_head["y"] + 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
@@ -667,7 +675,7 @@ def extract_1(lst):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, avoid_heads, risk_moves, ff_moves, ff_fits, data):
     my_size = len(data["you"]["body"])
     direction = None
     
@@ -699,14 +707,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #                preferred_moves = "right"
 
     tm = is_move_my_tail(my_head, my_tail, my_size)
-    if (my_size > 3):
+    if (my_size > 5):
         for t in tm:
             if t not in possible_moves:
                 possible_moves.append(t)
     print("DEBUG: Tail Moves!: {}".format(tm))
     
     votes_table = {}
-    votes_table = vote(votes_table, preferred_moves2, 3.0)
+    votes_table = vote(votes_table, preferred_moves2, 5.5)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     print("Tail: {}".format(votes_table))
@@ -714,14 +722,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 2.75)
+    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 4.0)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 1.75)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size <= 5):
+    if (my_size <= 6):
         for pm in preferred_moves:
             direction = pm
             print("DEBUG: Small snake, picking = {}".format(direction))
@@ -734,15 +742,23 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             print("DEBUG: Highest vote = {}".format(elem[0]))
             if (elem[0] in possible_moves):
                     print("  DEBUG: Highest vote is possible")
-                    direction = elem[0]
-                    if (check_ff_size(elem[0], ff_fits, data) == True):
+                    if (elem[0] in extract_1(ff_fits)):
                         print("  DEBUG: FF size OK")
                         direction = elem[0]
                         break
                     elif (elem[0] in tm):
                         print("  DEBUG: tail move OK")
                         direction = elem[0]
-                        break 
+                        break
+    
+    if (direction == None):
+        # Iterate over the sorted sequence
+        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
+        for elem in newlist:
+            print("DEBUG: Next scan - Highest vote = {}".format(elem[0]))
+            if (elem[0] in possible_moves):
+                direction = elem[0]
+                break
 
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
@@ -884,7 +900,6 @@ def move():
 
     last_val = 0
     count = 0
-    same = 0
     sss = []
     if (len(ff_fits) > 1):
         for fm in ff_moves:
@@ -892,7 +907,6 @@ def move():
                 last_val = fm[1]
             
             if (fm[1] == last_val):
-                same = 1
                 sss.append(fm[0])
             else:
                 same = 0
@@ -909,7 +923,7 @@ def move():
 
     # final decision
     #matrix = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_fits, data)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, avoid_heads, risk_moves, ff_moves, ff_fits, data)
 
     return move_response(direction)
 
