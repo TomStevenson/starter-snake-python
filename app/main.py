@@ -473,9 +473,9 @@ def build_matrix(width, height, data, snake_coords):
 def calculate_risk_factor(test_point, snake_heads, snake_tails, me):
     retval = 0
     # scale factor initialization
-    h_f = 15
-    t_f = 5
-    m_f = 0.4
+    h_f = 20
+    t_f = 3
+    m_f = 1
     if (test_point in snake_heads):
         retval += h_f
     elif (test_point in snake_tails):
@@ -744,23 +744,39 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
             if (elem[0] in possible_moves):
                 direction = elem[0]
                 break
-
-    if (direction == None):
-        for y in shd2:
-            if y[0] in possible_moves:
-                print("DEBUG: Picking a direction away from snake head danger: {}".format(y[0]))
-                direction = y[0]
-                break
     
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
+        # Iterate over the sorted sequence
+        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
         print("DEBUG: Last Ditch Possible Moves = {}".format(last_ditch_possible_moves))
-        direction = get_first_common_element(extract_1(ff_moves), last_ditch_possible_moves)
-        if (direction == None):
-            for rm in risk_moves:
-                direction = rm[0]
-                print("DEBUG: Picking Last Ditch Option = {}".format(direction))
+        for elem in newlist:
+            print("DEBUG: Next scan - Highest vote = {}".format(elem[0]))
+            if (elem[0] in possible_moves):
+                if (elem[0] in extract_1(ff_fits)):
+                    print("  DEBUG: LD FF size OK")
+                    direction = elem[0]
+                    break
+                elif (elem[0] in tm):
+                    print("  DEBUG: LD tail move OK")
+                    direction = elem[0]
+                    break
+
+    if (direction == None):
+        # Iterate over the sorted sequence
+        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
+        print("DEBUG: Last Ditch Possible Moves = {}".format(last_ditch_possible_moves))
+        for elem in newlist:
+            print("DEBUG: Next scan - Highest vote = {}".format(elem[0]))
+            if (elem[0] in last_ditch_possible_moves):
+                direction = elem[0]
                 break
+
+    if (direction == None):
+        for rm in risk_moves:
+            direction = rm[0]
+            print("DEBUG: Picking Last Ditch Option = {}".format(direction))
+            break
 
     if (direction == None):
         for ldp in last_ditch_possible_moves:
@@ -810,7 +826,7 @@ def move():
     
     # specify health threshold to go get food
     health_threshold = 35
-    if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
+    if ((my_size < 3) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
         print("DEBUG: Chase shortest snake")
