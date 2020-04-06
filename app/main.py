@@ -690,21 +690,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     shd = get_snake_head_danger(my_head, data, possible_moves)
     shd2 = convert_snake_head_danger(shd)
     print("DEBUG: Preferred moves away from snake head danger: {}".format(shd2))
-    for sh in extract_1(shd2):
-        if sh in preferred_moves:
-            preferred_moves2.remove(sh)
-    #for pm in preferred_moves:
-    #    if pm not in possible_moves:
-    #        if ((pm == "left") or (pm == "right")):
-    #            if ("up" in possible_moves):
-    #                preferred_moves = "up"
-    #            if ("down" in possible_moves):
-    #                preferred_moves = "down"
-    #        if ((pm == "up") or (pm == "down")):
-    #            if ("left" in possible_moves):
-    #                preferred_moves = "left"
-    #            if ("right" in possible_moves):
-    #                preferred_moves = "right"
 
     tm = is_move_my_tail(my_head, my_tail, my_size)
     if (my_size > 5):
@@ -722,7 +707,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     #print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 4.0)
+    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 0.5)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 1.75)
     print("Tail Move !: {}".format(votes_table))
@@ -760,6 +745,13 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
                 direction = elem[0]
                 break
 
+    if (direction == None):
+        for y in shd2:
+            if y[0] in possible_moves:
+                print("DEBUG: Picking a direction away from snake head danger: {}".format(y[0]))
+                direction = y[0]
+                break
+    
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
         print("DEBUG: Last Ditch Possible Moves = {}".format(last_ditch_possible_moves))
