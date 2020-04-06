@@ -117,13 +117,17 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     retval1 = []
     for r in retval:
         if (r[0] == "left"):
-            retval1.append(("left", left))
+            if (r[0] in possible_moves):
+                retval1.append(("left", left))
         if (r[0] == "right"):
-            retval1.append(("right", right))
+            if (r[0] in possible_moves):
+                retval1.append(("right", right))
         if (r[0] == "up"):
-            retval1.append(("up", up))
+            if (r[0] in [possible_moves]):
+                retval1.append(("up", up))
         if (r[0] == "down"):
-            retval1.append(("down", down))
+            if (r[0] in possible_moves):
+                retval1.append(("down", down))
             
     retval1.sort(key=lambda x: x[1])
     return retval1
@@ -654,10 +658,10 @@ def vote_with_risk_weights(votes_table, votes, weights):
     c = 0
     for vote in votes:
         w = get_weight(weights, vote)
-        if (w > 3.2):
+        if (w > 4.0):
             c = 0.0
         else:
-            c = 3.2 - w
+            c = 4.0 - w
         if vote in votes_table:
             votes_table[vote] += c
         else:
@@ -707,7 +711,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     #print("FF: {}".format(votes_table))
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 0.5)
+    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
     print("Snake Head Danger: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 1.75)
     print("Tail Move !: {}".format(votes_table))
@@ -715,7 +719,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
     if (my_size <= 10):
-        print("DEBUG: Small snake, picking = {}".format(direction))
         for pm in preferred_moves:
             if (pm in extract_1(ff_fits)):
                 print("  DEBUG: Preferred FF size OK")
@@ -725,6 +728,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
                 print("  DEBUG: Preferred tail move OK")
                 direction = pm
                 break
+        print("DEBUG: Small snake, picking = {}".format(direction))
 
     if (direction == None):
         # Iterate over the sorted sequence
@@ -771,11 +775,24 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     if (direction == None):
         # Iterate over the sorted sequence
         newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
-        print("DEBUG: Last Ditch Possible Moves = {}".format(last_ditch_possible_moves))
+        print("DEBUG: Next Last Ditch Possible Moves = {}".format(last_ditch_possible_moves))
         for elem in newlist:
             print("DEBUG: Next scan - Highest vote = {}".format(elem[0]))
             if (elem[0] in last_ditch_possible_moves):
                 direction = elem[0]
+                break
+
+    if (direction == None):
+        # Iterate over the sorted sequence
+        for ld in last_ditch_possible_moves:
+            print("DEBUG: Last ditch attempt = {}".format(ld))
+            if (ld in extract_1(ff_fits)):
+                print("  DEBUG: LDA FF size OK")
+                direction = ld
+                break
+            elif (ld in tm):
+                print("  DEBUG: LDA tail move OK")
+                direction = ld
                 break
 
     if (direction == None):
@@ -905,12 +922,15 @@ def move():
 
     max_ff = 0
     max_dir = None
+    count = 0
     if (len(ff_fits) == 0):
         for fm in ff_moves:
             if (fm[1] > max_ff):
                 max_ff = fm[1]
                 max_dir = fm[0]
-        ff_fits.append((max_dir, 1.0))
+                count += 1
+        if (count > 1):
+            ff_fits.append((max_dir, 1.0))
 
     last_val = 0
     count = 0
