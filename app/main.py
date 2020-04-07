@@ -718,7 +718,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size <= 10):
+    if (my_size <= 6):
         for pm in preferred_moves:
             if (pm in extract_1(ff_fits)):
                 print("  DEBUG: Preferred FF size OK")
