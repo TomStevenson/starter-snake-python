@@ -533,6 +533,80 @@ def scan_matrix(matrix, width, height, possible_moves, data):
     retval.sort(key=lambda x: x[1])
     return retval
 
+def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
+    retval = []
+    
+    height = data["board"]["height"]
+    width = data["board"]["width"]
+    
+    left = 0
+    right = 0
+    up = 0
+    down = 0
+    
+    for i in range(my_head["x"] - 1, 0):
+        print("LEFT")
+        test = (i, my_head["y"])
+        print(test)
+        if ((test in snake_coords) or (test in badCoords)):
+            left += 1
+        test = (i, my_head["y"] + 1)
+        if ((test in snake_coords) or (test in badCoords)):
+            left += 1
+        test = (i, my_head["y"] - 1)
+        if ((test in snake_coords) or (test in badCoords)):
+            left += 1
+
+    for i in range(my_head["x"] + 1, width - 1):
+        print("RIGHT")
+        test = (i, my_head["y"])
+        print(test)
+        if ((test in snake_coords) or (test in badCoords)):
+            right += 1
+        test = (i, my_head["y"] + 1)
+        if ((test in snake_coords) or (test in badCoords)):
+            down += 1
+        test = (i, my_head["y"] - 1)
+        if ((test in snake_coords) or (test in badCoords)):
+            down += 1
+
+    for i in range(my_head["y"] - 1, 0):
+        print("UP")
+        test = (my_head["x"], i)
+        print(test)
+        if ((test in snake_coords) or (test in badCoords)):
+            up += 1
+        test = (my_head["x"] + 1, i)
+        if ((test in snake_coords) or (test in badCoords)):
+            up += 1
+        test = (my_head["x"] - 1, i)
+        if ((test in snake_coords) or (test in badCoords)):
+            up += 1
+
+    for i in range(my_head["y"] + 1, height - 1):
+        print("DOWN")
+        test = (my_head["x"], i)
+        print(test)
+        if ((test in snake_coords) or (test in badCoords)):
+            down += 1
+        test = (my_head["x"] + 1, i)
+        if ((test in snake_coords) or (test in badCoords)):
+            down += 1
+        test = (my_head["x"] - 1, i)
+        if ((test in snake_coords) or (test in badCoords)):
+            down += 1
+
+    if ("left" in possible_moves):
+        retval.append(("left", (33 - left)/33))
+    if ("right" in possible_moves):
+        retval.append(("right", (33 - right)/33))
+    if ("up" in possible_moves):
+        retval.append(("up", (33 - up)/33))
+    if ("down" in possible_moves):
+        retval.append(("down", (33 - down)/33))
+
+    retval.sort(key=lambda x: x[1])
+    return retval
 
 def is_move_my_tail(my_head, my_tail, my_size):
     retval = []
@@ -679,7 +753,7 @@ def extract_1(lst):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, avoid_heads, risk_moves, ff_moves, ff_fits, data):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, avoid_heads, risk_moves, ff_moves, ff_fits, trajectory, data):
     my_size = len(data["you"]["body"])
     direction = None
     
@@ -713,12 +787,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     print("Risk: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
     print("Snake Head Danger: {}".format(votes_table))
+    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 3.0)
+    print("Trajectory: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 1.75)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size <= 6):
+    if (my_size <= 5):
         for pm in preferred_moves:
             if (pm in extract_1(ff_fits)):
                 print("  DEBUG: Preferred FF size OK")
@@ -955,9 +1031,12 @@ def move():
     print("DEBUG: FF Moves: {}".format(ff_moves))
     print("DEBUG: FF Fits: {}".format(ff_fits))
 
+    ct = check_trajectory(my_head, bad_coords, snake_coords, data, possible_moves)
+    print("DEBUG: Checking trajectory: {}".format(ct))
+
     # final decision
     #matrix = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, avoid_heads, risk_moves, ff_moves, ff_fits, data)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, avoid_heads, risk_moves, ff_moves, ff_fits, ct, data)
 
     return move_response(direction)
 
