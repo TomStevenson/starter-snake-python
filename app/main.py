@@ -544,7 +544,9 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
     up = 0
     down = 0
     
+    left_count = 0
     for i in range(my_head["x"] - 1, 0):
+        left_count += 3
         print("LEFT")
         test = (i, my_head["y"])
         print(test)
@@ -557,7 +559,9 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         if ((test in snake_coords) or (test in badCoords)):
             left += 1
 
-    for i in range(my_head["x"] + 1, width - 1):
+    right_count = 0
+    for i in range(my_head["x"] + 1, width):
+        right_count += 3
         print("RIGHT")
         test = (i, my_head["y"])
         print(test)
@@ -570,7 +574,9 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         if ((test in snake_coords) or (test in badCoords)):
             down += 1
 
+    up_count = 0
     for i in range(my_head["y"] - 1, 0):
+        up_count += 3
         print("UP")
         test = (my_head["x"], i)
         print(test)
@@ -583,7 +589,9 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         if ((test in snake_coords) or (test in badCoords)):
             up += 1
 
-    for i in range(my_head["y"] + 1, height - 1):
+    down_count = 0
+    for i in range(my_head["y"] + 1, height):
+        down_count += 3
         print("DOWN")
         test = (my_head["x"], i)
         print(test)
@@ -597,13 +605,25 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
             down += 1
 
     if ("left" in possible_moves):
-        retval.append(("left", (33 - left)/33))
+        if (left_count > 0):
+            retval.append(("left", (left_count - left)/left_count))
+        else:
+            retval.append(("left", 1.0))
     if ("right" in possible_moves):
-        retval.append(("right", (33 - right)/33))
+        if (right_count > 0):
+            retval.append(("right", (right_count - right)/right_count))
+        else:
+            retval.append(("right", 1.0))
     if ("up" in possible_moves):
-        retval.append(("up", (33 - up)/33))
+        if (up_count > 0):
+            retval.append(("up", (up_count - up)/up_count))
+        else:
+            retval.append(("up", 1.0))
     if ("down" in possible_moves):
-        retval.append(("down", (33 - down)/33))
+        if (down_count > 0):
+            retval.append(("down", (down_count - down)/down_count))
+        else:
+            retval.append(("down", 1.0))
 
     retval.sort(key=lambda x: x[1])
     return retval
