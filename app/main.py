@@ -538,6 +538,7 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
     
     height = data["board"]["height"]
     width = data["board"]["width"]
+    snake_heads = get_snake_array(0, data)
     
     left = 0
     right = 0
@@ -547,62 +548,90 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
     left_count = 0
     for i in range(my_head["x"] - 1, 0):
         left_count += 3
-        print("LEFT")
         test = (i, my_head["y"])
-        print(test)
         if ((test in snake_coords) or (test in badCoords)):
-            left += 1
+            if test in snake_heads:
+                left += 5
+            else:
+                left += 1
         test = (i, my_head["y"] + 1)
         if ((test in snake_coords) or (test in badCoords)):
-            left += 1
+            if test in snake_heads:
+                left += 5
+            else:
+                left += 1
         test = (i, my_head["y"] - 1)
         if ((test in snake_coords) or (test in badCoords)):
-            left += 1
+            if test in snake_heads:
+                left += 5
+            else:
+                left += 1
 
     right_count = 0
     for i in range(my_head["x"] + 1, width):
         right_count += 3
-        print("RIGHT")
         test = (i, my_head["y"])
-        print(test)
         if ((test in snake_coords) or (test in badCoords)):
-            right += 1
+            if test in snake_heads:
+                right += 5
+            else:
+                right += 1
         test = (i, my_head["y"] + 1)
         if ((test in snake_coords) or (test in badCoords)):
-            down += 1
+            if test in snake_heads:
+                right += 5
+            else:
+                right += 1
         test = (i, my_head["y"] - 1)
         if ((test in snake_coords) or (test in badCoords)):
-            down += 1
+            if test in snake_heads:
+                right += 5
+            else:
+                right += 1
 
     up_count = 0
     for i in range(my_head["y"] - 1, 0):
         up_count += 3
-        print("UP")
         test = (my_head["x"], i)
-        print(test)
         if ((test in snake_coords) or (test in badCoords)):
-            up += 1
+            if test in snake_heads:
+                up += 5
+            else:
+                up += 1
         test = (my_head["x"] + 1, i)
         if ((test in snake_coords) or (test in badCoords)):
-            up += 1
+            if test in snake_heads:
+                up += 5
+            else:
+                up += 1
         test = (my_head["x"] - 1, i)
         if ((test in snake_coords) or (test in badCoords)):
-            up += 1
+            if test in snake_heads:
+                up += 5
+            else:
+                up += 1
 
     down_count = 0
     for i in range(my_head["y"] + 1, height):
         down_count += 3
-        print("DOWN")
         test = (my_head["x"], i)
-        print(test)
         if ((test in snake_coords) or (test in badCoords)):
-            down += 1
+            if test in snake_heads:
+                down += 5
+            else:
+                down += 1
         test = (my_head["x"] + 1, i)
         if ((test in snake_coords) or (test in badCoords)):
-            down += 1
+            if test in snake_heads:
+                down += 5
+            else:
+                down += 1
         test = (my_head["x"] - 1, i)
         if ((test in snake_coords) or (test in badCoords)):
-            down += 1
+            if test in snake_heads:
+                down +=5
+            else:
+                down += 1
 
     if ("left" in possible_moves):
         if (left_count > 0):
@@ -807,7 +836,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     print("Risk: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
     print("Snake Head Danger: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 3.0)
+    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 4.0)
     print("Trajectory: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 1.75)
     print("Tail Move !: {}".format(votes_table))
