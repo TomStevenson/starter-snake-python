@@ -873,12 +873,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     
     if (direction == None):
         # Iterate over the sorted sequence
-        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
-        for elem in newlist:
-            print("DEBUG: Next scan - Highest vote = {}".format(elem[0]))
-            if (elem[0] in possible_moves):
-                direction = elem[0]
-                break
+        for ff in ff_moves:
+            direction = ff[0]
+            break
+        print("DEBUG: Next scan - Highest FF = {}".format(direction))
     
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
