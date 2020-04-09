@@ -579,19 +579,19 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         test = (i, my_head["y"])
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                left += 5
+                left += 10
             else:
                 left += 1
         test = (i, my_head["y"] + 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                left += 5
+                left += 10
             else:
                 left += 1
         test = (i, my_head["y"] - 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                left += 5
+                left += 10
             else:
                 left += 1
 
@@ -601,19 +601,19 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         test = (i, my_head["y"])
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                right += 5
+                right += 10
             else:
                 right += 1
         test = (i, my_head["y"] + 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                right += 5
+                right += 10
             else:
                 right += 1
         test = (i, my_head["y"] - 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                right += 5
+                right += 10
             else:
                 right += 1
 
@@ -623,19 +623,19 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         test = (my_head["x"], i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                up += 5
+                up += 10
             else:
                 up += 1
         test = (my_head["x"] + 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                up += 5
+                up += 10
             else:
                 up += 1
         test = (my_head["x"] - 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                up += 5
+                up += 10
             else:
                 up += 1
 
@@ -645,19 +645,19 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         test = (my_head["x"], i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                down += 5
+                down += 10
             else:
                 down += 1
         test = (my_head["x"] + 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                down += 5
+                down += 10
             else:
                 down += 1
         test = (my_head["x"] - 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                down +=5
+                down +=10
             else:
                 down += 1
 
@@ -864,7 +864,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     print("Risk: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
     print("Snake Head Danger: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 4.0)
+    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 4.5)
     print("Trajectory: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 1.75)
     print("Tail Move !: {}".format(votes_table))
