@@ -132,22 +132,45 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     retval1.sort(key=lambda x: x[1])
     return retval1
 
+def calc_current_score(x1, y1, x2, y2):
+    current_distance = [99, 99]
+    #current_distance[0] = abs(my_head["x"] - current_food["x"])
+    #current_distance[1] = abs(my_head["y"] - current_food["y"])
+    current_distance[0] = abs(x1 - x2)
+    current_distance[1] = abs(y1 - y2)
+    current_score = current_distance[0] * current_distance[1]
+    return current_score
+
 # get_food_list: scans the food array and finds the closest food to my snake head
 # my_head: coordinates of my snake head to be used as the reference point to food
 # data: generic game data to get the food list from
 # returns: coordinates of the closest food
 def get_food_list(my_head, data):
+    snake_heads = get_snake_array(0, data)
+    height = data["board"]["height"]
+    width = data["board"]["width"]
     closest = []
     last_score = 999999
     l = []
     for current_food in data["board"]["food"]:
-        current_distance = [99, 99]
-        current_distance[0] = abs(my_head["x"] - current_food["x"])
-        current_distance[1] = abs(my_head["y"] - current_food["y"])
-        current_score = current_distance[0] * current_distance[1]
+        current_score = calc_current_score(my_head["x"], my_head["y"], current_food["x"], current_food["y"])
         if current_score < last_score:
+            danger = False
+            for sh in snake_heads:
+                snake_score = calc_current_score(sh[0], sh[1], current_food["x"], current_food["y"])
+                if (snake_score < 5):
+                    print("DEBUG: Snake TOO Close to FOOD !!!")
+                    danger = True
+                    break
+            if (danger == False):
+                closest = current_food
+                last_score = current_score
+
+    if (len(closest) == 0):
+        print("DEBUG: no food - get first")
+        for current_food in data["board"]["food"]:
             closest = current_food
-            last_score = current_score
+            break
 
     l.append(closest)
     return l
@@ -843,17 +866,17 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size <= 5):
-        for pm in preferred_moves:
-            if (pm in extract_1(ff_fits)):
-                print("  DEBUG: Preferred FF size OK")
-                direction = pm
-                break
-            elif (pm in tm):
-                print("  DEBUG: Preferred tail move OK")
-                direction = pm
-                break
-        print("DEBUG: Small snake, picking = {}".format(direction))
+    #if (my_size <= 5):
+    #    for pm in preferred_moves:
+    #        if (pm in extract_1(ff_fits)):
+    #            print("  DEBUG: Preferred FF size OK")
+    #            direction = pm
+    #            break
+    #        elif (pm in tm):
+    #            print("  DEBUG: Preferred tail move OK")
+    #            direction = pm
+    #            break
+    #    print("DEBUG: Small snake, picking = {}".format(direction))
 
     if (direction == None):
         # Iterate over the sorted sequence
