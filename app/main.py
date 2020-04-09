@@ -147,6 +147,7 @@ def calc_current_score(x1, y1, x2, y2):
 # returns: coordinates of the closest food
 def get_food_list(my_head, data):
     snake_heads = get_snake_array(0, data)
+    my_head = data["you"]["body"][0]
     height = data["board"]["height"]
     width = data["board"]["width"]
     closest = []
@@ -157,11 +158,13 @@ def get_food_list(my_head, data):
         if current_score < last_score:
             danger = False
             for sh in snake_heads:
-                snake_score = calc_current_score(sh[0], sh[1], current_food["x"], current_food["y"])
-                if (snake_score < 5):
-                    print("DEBUG: Snake TOO Close to FOOD !!!")
-                    danger = True
-                    break
+                test = (my_head["x"], my_head["y"])
+                if (sh != test):
+                    snake_score = calc_current_score(sh[0], sh[1], current_food["x"], current_food["y"])
+                    if (snake_score < 5):
+                        print("DEBUG: Snake TOO Close to FOOD !!!")
+                        danger = True
+                        break
             if (danger == False):
                 closest = current_food
                 last_score = current_score
@@ -169,8 +172,10 @@ def get_food_list(my_head, data):
     if (len(closest) == 0):
         print("DEBUG: no food - get first")
         for current_food in data["board"]["food"]:
-            closest = current_food
-            break
+            current_score = calc_current_score(my_head["x"], my_head["y"], current_food["x"], current_food["y"])
+            if current_score < last_score:
+                closest = current_food
+                last_score = current_score
 
     l.append(closest)
     return l
