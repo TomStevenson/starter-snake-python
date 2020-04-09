@@ -866,17 +866,17 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    #if (my_size <= 5):
-    #    for pm in preferred_moves:
-    #        if (pm in extract_1(ff_fits)):
-    #            print("  DEBUG: Preferred FF size OK")
-    #            direction = pm
-    #            break
-    #        elif (pm in tm):
-    #            print("  DEBUG: Preferred tail move OK")
-    #            direction = pm
-    #            break
-    #    print("DEBUG: Small snake, picking = {}".format(direction))
+    if (my_size <= 5):
+        for pm in preferred_moves:
+            if (pm in extract_1(ff_fits)):
+                print("  DEBUG: Preferred FF size OK")
+                direction = pm
+                break
+            elif (pm in tm):
+                print("  DEBUG: Preferred tail move OK")
+                direction = pm
+                break
+        print("DEBUG: Small snake, picking = {}".format(direction))
 
     if (direction == None):
         # Iterate over the sorted sequence
