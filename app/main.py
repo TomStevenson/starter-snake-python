@@ -161,7 +161,7 @@ def get_food_list(my_head, data):
                 test = (my_head["x"], my_head["y"])
                 if (sh != test):
                     snake_score = calc_current_score(sh[0], sh[1], current_food["x"], current_food["y"])
-                    if (snake_score < 5):
+                    if (snake_score < 4):
                         print("DEBUG: Snake TOO Close to FOOD !!!")
                         danger = True
                         break
@@ -169,15 +169,8 @@ def get_food_list(my_head, data):
                 closest = current_food
                 last_score = current_score
 
-    if (len(closest) == 0):
-        print("DEBUG: no food - get first")
-        for current_food in data["board"]["food"]:
-            current_score = calc_current_score(my_head["x"], my_head["y"], current_food["x"], current_food["y"])
-            if current_score < last_score:
-                closest = current_food
-                last_score = current_score
-
-    l.append(closest)
+    if (len(closest) > 0):
+        l.append(closest)
     return l
 
 # get_food_list: fetches first element from x that is common for both lists
@@ -355,8 +348,6 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"] - 1, my_head["y"]))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
-    test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
-    test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] - 2, my_head["y"]))
     test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
@@ -365,8 +356,6 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"] + 1, my_head["y"]))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 1))
-    test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
-    test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] + 2, my_head["y"]))
     test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
@@ -375,8 +364,6 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"], my_head["y"] - 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
-    test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
-    test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
     test_areas.append((my_head["x"], my_head["y"] - 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
@@ -385,8 +372,6 @@ def get_snake_heads_to_avoid(my_head, data):
     test_areas.append((my_head["x"], my_head["y"] + 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 1))
-    test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
-    test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
     test_areas.append((my_head["x"], my_head["y"] + 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
@@ -539,13 +524,13 @@ def scan_matrix(matrix, width, height, possible_moves, data):
     for x in range(width):
         for y in range(height):
             test = (x, y)
-            if ((x <= my_head["x"]) and (matrix[x][y] == 's')):
+            if ((x <= round(width/2)) and (matrix[x][y] == 's')):
                 left += calculate_risk_factor(test, snake_heads, snake_tails, me)
-            if ((y >= my_head["y"]) and (matrix[x][y] == 's')):
+            if ((y >= round(height/2)) and (matrix[x][y] == 's')):
                 down += calculate_risk_factor(test, snake_heads, snake_tails, me)
-            if ((y <= my_head["y"]) and (matrix[x][y] == 's')):
+            if ((y <= round(height/2)) and (matrix[x][y] == 's')):
                 up += calculate_risk_factor(test, snake_heads, snake_tails, me)
-            if ((x >= my_head["x"]) and (matrix[x][y] == 's')):
+            if ((x >= round(width/2)) and (matrix[x][y] == 's')):
                 right += calculate_risk_factor(test, snake_heads, snake_tails, me)
 
     scale_factor = 0.01
@@ -561,6 +546,61 @@ def scan_matrix(matrix, width, height, possible_moves, data):
     retval.sort(key=lambda x: x[1])
     return retval
 
+def scan_empty_quadrant(matrix, width, height, possible_moves):
+    retval = []
+    # initalize counter variables
+    q1 = 0
+    q2 = 0
+    q3 = 0
+    q4 = 0
+    for x in range(round(width/2)):
+        for y in range(round(height/2)):
+            test = (x, y)
+            if (matrix[x][y] == 'e'):
+                q1 += 1
+    for x in range(round(width/2), width):
+        for y in range(round(height/2)):
+            test = (x, y)
+            if (matrix[x][y] == 'e'):
+                q2 += 1
+    
+    for x in range(round(width/2)):
+        for y in range(round(height/2), height):
+            test = (x, y)
+            if (matrix[x][y] == 'e'):
+                q3 += 1
+    
+    for x in range(round(width/2), width):
+        for y in range(round(height/2), height):
+            test = (x, y)
+            if (matrix[x][y] == 'e'):
+                q4 += 1
+    
+    retval.append(("q1", q1))
+    retval.append(("q2", q2))
+    retval.append(("q3", q3))
+    retval.append(("q4", q4))
+     
+    point = max(retval,key=lambda item:item[1])[0]
+
+    a = {}
+    if (point == "q1"):
+        a['x'] = 3
+        a['y'] = 3
+    if (point == "q2"):
+        a['x'] = 8
+        a['y'] = 3
+    if (point == "q3"):
+        a['x'] = 3
+        a['y'] = 8
+    if (point == "q4"):
+        a['x'] = 8
+        a['y'] = 8
+    
+    r = []
+    r.append(a)
+    return r
+
 def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
     retval = []
     
@@ -573,25 +613,26 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
     up = 0
     down = 0
     
+    factor = 5
     left_count = 0
-    for i in range(my_head["x"] - 1, 0):
+    for i in range(0, my_head["x"] - 1):
         left_count += 3
         test = (i, my_head["y"])
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                left += 10
+                left += factor
             else:
                 left += 1
         test = (i, my_head["y"] + 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                left += 10
+                left += factor
             else:
                 left += 1
         test = (i, my_head["y"] - 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                left += 10
+                left += factor
             else:
                 left += 1
 
@@ -601,41 +642,41 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         test = (i, my_head["y"])
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                right += 10
+                right += factor
             else:
                 right += 1
         test = (i, my_head["y"] + 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                right += 10
+                right += factor
             else:
                 right += 1
         test = (i, my_head["y"] - 1)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                right += 10
+                right += factor
             else:
                 right += 1
 
     up_count = 0
-    for i in range(my_head["y"] - 1, 0):
+    for i in range(0, my_head["y"] - 1):
         up_count += 3
         test = (my_head["x"], i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                up += 10
+                up += factor
             else:
                 up += 1
         test = (my_head["x"] + 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                up += 10
+                up += factor
             else:
                 up += 1
         test = (my_head["x"] - 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                up += 10
+                up += factor
             else:
                 up += 1
 
@@ -645,19 +686,19 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         test = (my_head["x"], i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                down += 10
+                down += factor
             else:
                 down += 1
         test = (my_head["x"] + 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                down += 10
+                down += factor
             else:
                 down += 1
         test = (my_head["x"] - 1, i)
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
-                down +=10
+                down +=factor
             else:
                 down += 1
 
@@ -854,12 +895,15 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     print("DEBUG: Tail Moves!: {}".format(tm))
     
     votes_table = {}
-    votes_table = vote(votes_table, preferred_moves2, 5.5)
+    votes_table = vote(votes_table, preferred_moves2, 6.0)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     print("Tail: {}".format(votes_table))
+    
+
     #votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits, 6)
     #print("FF: {}".format(votes_table))
+    
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
@@ -871,17 +915,17 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
-    if (my_size <= 5):
-        for pm in preferred_moves:
-            if (pm in extract_1(ff_fits)):
-                print("  DEBUG: Preferred FF size OK")
-                direction = pm
-                break
-            elif (pm in tm):
-                print("  DEBUG: Preferred tail move OK")
-                direction = pm
-                break
-        print("DEBUG: Small snake, picking = {}".format(direction))
+    #if (my_size <= 5):
+    #    for pm in preferred_moves:
+    #        if (pm in extract_1(ff_fits)):
+    #            print("  DEBUG: Preferred FF size OK")
+    #            direction = pm
+    #            break
+    #        elif (pm in tm):
+    #            print("  DEBUG: Preferred tail move OK")
+    #            direction = pm
+    #            break
+    #    print("DEBUG: Small snake, picking = {}".format(direction))
 
     if (direction == None):
         # Iterate over the sorted sequence
@@ -994,8 +1038,16 @@ def move():
     # check if we have a longer snake on the board
     longer_snake = is_there_a_longer_snake(data)
 
+    # determine possible moves - remove any entries where we need to avoid snake heads
+    possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
+
     # get list of food and determine closest food to my head
     food_sorted_by_proximity = get_food_list(my_head, data)
+    if (len(food_sorted_by_proximity) == 0):
+        matrix = build_matrix(width, height, data, snake_coords)
+        food_sorted_by_proximity = scan_empty_quadrant(matrix, width, height, possible_moves)
+        print("DEBUG: new matrix: {}".format(food_sorted_by_proximity))
+
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
@@ -1010,9 +1062,6 @@ def move():
         print("DEBUG: Chase my tail")
         target["x"] = my_tail["x"]
         target["y"] = my_tail["y"]
-
-    # determine possible moves - remove any entries where we need to avoid snake heads
-    possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
 
     snake_coords_no_tails = populate_snake_coords(data, True)
     last_ditch_possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords_no_tails)
