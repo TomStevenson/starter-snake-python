@@ -156,21 +156,9 @@ def get_food_list(my_head, data):
     for current_food in data["board"]["food"]:
         current_score = calc_current_score(my_head["x"], my_head["y"], current_food["x"], current_food["y"])
         if current_score < last_score:
-            danger = False
-            for sh in snake_heads:
-                test = (my_head["x"], my_head["y"])
-                if (sh != test):
-                    snake_score = calc_current_score(sh[0], sh[1], current_food["x"], current_food["y"])
-                    if (snake_score < 4):
-                        print("DEBUG: Snake TOO Close to FOOD !!!")
-                        danger = True
-                        break
-            if (danger == False):
-                closest = current_food
-                last_score = current_score
-
-    if (len(closest) > 0):
-        l.append(closest)
+            closest = current_food
+            last_score = current_score
+    l.append(closest)
     return l
 
 # get_food_list: fetches first element from x that is common for both lists
@@ -582,24 +570,30 @@ def scan_empty_quadrant(matrix, width, height, possible_moves):
     retval.append(("q4", q4))
      
     point = max(retval,key=lambda item:item[1])[0]
-
-    a = {}
-    if (point == "q1"):
-        a['x'] = 3
-        a['y'] = 3
-    if (point == "q2"):
-        a['x'] = 8
-        a['y'] = 3
-    if (point == "q3"):
-        a['x'] = 3
-        a['y'] = 8
-    if (point == "q4"):
-        a['x'] = 8
-        a['y'] = 8
     
-    r = []
-    r.append(a)
-    return r
+    tt = []
+    if (point == "q1"):
+        if ("up" in possible_moves):
+            tt.append("up")
+        if ("left" in possible_moves):
+            tt.append("left")
+    if (point == "q2"):
+        if ("right" in possible_moves):
+            tt.append("right")
+        if ("up" in possible_moves):
+            tt.append("up")
+    if (point == "q3"):
+        if ("left" in possible_moves):
+            tt.append("left")
+        if ("down" in possible_moves):
+            tt.append("down")
+    if (point == "q4"):
+        if ("right" in possible_moves):
+            tt.append("right")
+        if ("down" in possible_moves):
+            tt.append("down")
+    
+    return tt
 
 def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
     retval = []
@@ -613,7 +607,7 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
     up = 0
     down = 0
     
-    factor = 5
+    factor = 12
     left_count = 0
     for i in range(0, my_head["x"] - 1):
         left_count += 3
@@ -894,23 +888,28 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
                 possible_moves.append(t)
     print("DEBUG: Tail Moves!: {}".format(tm))
     
+    height = data["board"]["height"]
+    width = data["board"]["width"]
+    snake_coords = populate_snake_coords(data)
+    matrix = build_matrix(width, height, data, snake_coords)
+    directions_by_empty = scan_empty_quadrant(matrix, width, height, possible_moves)
+
     votes_table = {}
     votes_table = vote(votes_table, preferred_moves2, 6.0)
     print("Preferred: {}".format(votes_table))
     votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     print("Tail: {}".format(votes_table))
     
-
-    #votes_table = vote_with_weights(votes_table, extract_1(ff_fits), ff_fits, 6)
-    #print("FF: {}".format(votes_table))
+    votes_table = vote(votes_table, directions_by_empty, 2.0)
+    print("Empty Directions: {}".format(votes_table))
     
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
     print("Snake Head Danger: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 4.5)
+    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 4.0)
     print("Trajectory: {}".format(votes_table))
-    votes_table = vote(votes_table, tm, 1.75)
+    votes_table = vote(votes_table, tm, 2.0)
     print("Tail Move !: {}".format(votes_table))
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
@@ -1043,11 +1042,6 @@ def move():
 
     # get list of food and determine closest food to my head
     food_sorted_by_proximity = get_food_list(my_head, data)
-    if (len(food_sorted_by_proximity) == 0):
-        matrix = build_matrix(width, height, data, snake_coords)
-        food_sorted_by_proximity = scan_empty_quadrant(matrix, width, height, possible_moves)
-        print("DEBUG: new matrix: {}".format(food_sorted_by_proximity))
-
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
