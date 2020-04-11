@@ -498,13 +498,14 @@ def scan_matrix(matrix, width, height, possible_moves, data):
     retval.sort(key=lambda x: x[1])
     return retval
 
-def scan_empty_quadrant(matrix, width, height, possible_moves, my_head):
+def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
     retval = []
     # initalize counter variables
     q1 = 0
     q2 = 0
     q3 = 0
     q4 = 0
+    snake_heads = get_snake_array(0, data)
     head_test = (my_head["x"], my_head["y"])
     head_q = None
     for x in range(round(width/2)):
@@ -514,6 +515,9 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head):
                 head_q = "q1"
             if (matrix[x][y] == 'e'):
                 q1 += 1
+            if (test in snake_heads):
+                q1 -= 5
+
     for x in range(round(width/2), width):
         for y in range(round(height/2)):
             test = (x, y)
@@ -521,7 +525,9 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head):
                 head_q = "q2"
             if (matrix[x][y] == 'e'):
                 q2 += 1
-    
+            if (test in snake_heads):
+                q2 -= 5
+
     for x in range(round(width/2)):
         for y in range(round(height/2), height):
             test = (x, y)
@@ -529,6 +535,8 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head):
                 head_q = "q3"
             if (matrix[x][y] == 'e'):
                 q3 += 1
+            if (test in snake_heads):
+                q3 -= 5
     
     for x in range(round(width/2), width):
         for y in range(round(height/2), height):
@@ -537,6 +545,8 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head):
                 head_q = "q4"
             if (matrix[x][y] == 'e'):
                 q4 += 1
+            if (test in snake_heads):
+                q4 -= 5
     
     retval.append(("q1", q1))
     retval.append(("q2", q2))
@@ -761,6 +771,7 @@ def floodfill_algorithm(matrix, x, y, count, snake_coords):
 def build_floodfill_move(width, height, snake_coords, data, x, y, test1, test2):
     ff = 0
     if (test1 != test2):
+
         ff = floodfill_algorithm(build_matrix(width, height, data, snake_coords), x, y, 0, snake_coords)
     return ff
 
@@ -888,11 +899,12 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     width = data["board"]["width"]
     snake_coords = populate_snake_coords(data)
     matrix = build_matrix(width, height, data, snake_coords)
-    directions_by_empty = scan_empty_quadrant(matrix, width, height, possible_moves, my_head)
+    directions_by_empty = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
 
     votes_table = {}
     votes_table = vote(votes_table, preferred_moves2, 6.0)
     print("Preferred: {}".format(votes_table))
+
     votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     print("Tail: {}".format(votes_table))
     
@@ -901,12 +913,16 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
+
+    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1.5)
     print("Snake Head Danger: {}".format(votes_table))
+
     votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 3.5)
     print("Trajectory: {}".format(votes_table))
+
     votes_table = vote(votes_table, tm, 2.0)
     print("Tail Move !: {}".format(votes_table))
+    
     if (len(votes_table) > 0):
         print("DEBUG: Tally of Votes: {}".format(votes_table))
 
@@ -1087,26 +1103,26 @@ def move():
     # build array of sizes of empty squares in flood fill of all four directions
     ff_moves = []
     ff_fits = []
-    #factor = 0.95
+    size = 0.95 * (my_size - 1)
     if ("up" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)
         ff_moves.append(("up", val))
-        if (val > (my_size-1)):
+        if (val > size):
             ff_fits.append(("up", 1.0))
     if ("down" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)
         ff_moves.append(("down", val))
-        if (val > (my_size-1)):
+        if (val > size):
             ff_fits.append(("down", 1.0))
     if ("left" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)
         ff_moves.append(("left", val))
-        if (val > (my_size-1)):
+        if (val > size):
             ff_fits.append(("left", 1.0))
     if ("right" in last_ditch_possible_moves):
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
         ff_moves.append(("right", val))
-        if (val > (my_size-1)):
+        if (val > size):
             ff_fits.append(("right", 1.0))        
     ff_moves.sort(key=lambda x: x[1], reverse=True)
 
