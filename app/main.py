@@ -69,17 +69,17 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     right = 0
     up = 0
     down = 0
-    number_of_active_snakes = len(data["board"]["snakes"])
+    #number_of_active_snakes = len(data["board"]["snakes"])
     for snake in data["board"]["snakes"]:
         if (len(snake["body"]) >= (len(data["you"]["body"]))):
             if (snake != data["you"]):
                 the_x = snake_head["x"] - snake["body"][0]["x"]
-                if (the_x > 0):
+                if (the_x > 0 and the_x <= 4):
                     left += the_x
                 else:
                     right += abs(the_x)
                 the_y = snake_head["y"] - snake["body"][0]["y"]
-                if (the_y > 0):
+                if (the_y > 0 and the_y <= 4):
                     up += the_y
                 else:
                     down += abs(the_y)
@@ -93,41 +93,20 @@ def get_snake_head_danger(snake_head, data, possible_moves):
     if (down > 0):
         retval.append(("down", 1.0))
 
-    
-    if (left/number_of_active_snakes <= 5):
-        left = 1
-    else:
-        left = 0
-    
-    if (right/number_of_active_snakes <= 5):
-        right = 1
-    else:
-        right = 0
-    
-    if (up/number_of_active_snakes <= 5):
-        up = 1
-    else:
-        up = 0
-
-    if (down/number_of_active_snakes <= 5):
-        down = 1
-    else:
-        down = 0
-
     retval1 = []
     for r in retval:
         if (r[0] == "left"):
             if (r[0] in possible_moves):
-                retval1.append(("left", left))
+                retval1.append(("left", left/10))
         if (r[0] == "right"):
             if (r[0] in possible_moves):
-                retval1.append(("right", right))
+                retval1.append(("right", right/10))
         if (r[0] == "up"):
             if (r[0] in [possible_moves]):
-                retval1.append(("up", up))
+                retval1.append(("up", up/10))
         if (r[0] == "down"):
             if (r[0] in possible_moves):
-                retval1.append(("down", down))
+                retval1.append(("down", down/10))
             
     retval1.sort(key=lambda x: x[1])
     return retval1
@@ -402,33 +381,18 @@ def check_risky_business(move, snake_coords, possible_moves, data, width, height
             move_to_edge += 0
   
         edges_adjust = 0
+        edge_factor = 40
         if ((move == "up") or (move == "down")):
             if ((my_head["x"] == 0) or (my_head["x"] == width - 1)):
-                p_to_test = 0
-                if (move == "down"):
-                    p_to_test = (my_head["y"] + 2)
-                else:
-                    p_to_test = (my_head["y"])
-                mid_point = round(width / 2)
-                r_calc = abs(mid_point - p_to_test)
-                edge_factor = r_calc / width
                 edges_adjust += edge_factor
         if ((move == "right") or (move == "left")):
             if ((my_head["y"] == 0) or (my_head["y"] == height - 1)):
-                p_to_test = 0
-                if (move == "right"):
-                    p_to_test = (my_head["y"] + 2)
-                else:
-                    p_to_test = (my_head["y"])
-                mid_point = round(height / 2)
-                r_calc = abs(mid_point - p_to_test)
-                edge_factor = r_calc / height
                 edges_adjust += edge_factor
         #print(" DEBUG: risky business: {}".format(move))
         #print("     DEBUG: sv: {}".format(sv))
         #print("     DEBUG: edges adjust: {}".format(0.1 * edges_adjust))
         #print("     DEBUG: move to edge: {}".format(move_to_edge))
-        tup = (move, 10*(sv + edges_adjust*0.5 + move_to_edge))
+        tup = (move, 10*(sv + edges_adjust + move_to_edge))
     return tup
 
 # get_directions_of_my_tail: builds a list of directions to get to my tail
@@ -534,33 +498,43 @@ def scan_matrix(matrix, width, height, possible_moves, data):
     retval.sort(key=lambda x: x[1])
     return retval
 
-def scan_empty_quadrant(matrix, width, height, possible_moves):
+def scan_empty_quadrant(matrix, width, height, possible_moves, my_head):
     retval = []
     # initalize counter variables
     q1 = 0
     q2 = 0
     q3 = 0
     q4 = 0
+    head_test = (my_head["x"], my_head["y"])
+    head_q = None
     for x in range(round(width/2)):
         for y in range(round(height/2)):
             test = (x, y)
+            if (test == head_test):
+                head_q = "q1"
             if (matrix[x][y] == 'e'):
                 q1 += 1
     for x in range(round(width/2), width):
         for y in range(round(height/2)):
             test = (x, y)
+            if (test == head_test):
+                head_q = "q2"
             if (matrix[x][y] == 'e'):
                 q2 += 1
     
     for x in range(round(width/2)):
         for y in range(round(height/2), height):
             test = (x, y)
+            if (test == head_test):
+                head_q = "q3"
             if (matrix[x][y] == 'e'):
                 q3 += 1
     
     for x in range(round(width/2), width):
         for y in range(round(height/2), height):
             test = (x, y)
+            if (test == head_test):
+                head_q = "q4"
             if (matrix[x][y] == 'e'):
                 q4 += 1
     
@@ -568,46 +542,60 @@ def scan_empty_quadrant(matrix, width, height, possible_moves):
     retval.append(("q2", q2))
     retval.append(("q3", q3))
     retval.append(("q4", q4))
+    print(q1)
+    print(q2)
+    print(q3)
+    print(q4)
      
     point = max(retval,key=lambda item:item[1])[0]
-    
+    print("max = {}".format(point))
     tt = []
-    if (point == "q1"):
+    if ((point == "q1") and (head_q != "q1")):
         if ("up" in possible_moves):
-            tt.append("up")
+            if (my_head["y"] >= height/2):
+                tt.append("up")
         if ("left" in possible_moves):
-            tt.append("left")
-    if (point == "q2"):
+            if (my_head["x"] >= width/2):
+                tt.append("left")
+    if ((point == "q2") and (head_q != "q2")):
         if ("right" in possible_moves):
-            tt.append("right")
+            if (my_head["x"] <= width/2):
+                tt.append("right")
         if ("up" in possible_moves):
-            tt.append("up")
-    if (point == "q3"):
+            if (my_head["y"] >= height/2):
+                tt.append("up")
+    if ((point == "q3") and (head_q != "q3")):
         if ("left" in possible_moves):
-            tt.append("left")
+            if (my_head["x"] >= width/2):
+                tt.append("left")
         if ("down" in possible_moves):
-            tt.append("down")
-    if (point == "q4"):
+            if (my_head["y"] <= height/2):
+                tt.append("down")
+    if ((point == "q4") and (head_q != "q4")):
         if ("right" in possible_moves):
-            tt.append("right")
+            if (my_head["x"] <= width/2):
+                tt.append("right")
         if ("down" in possible_moves):
-            tt.append("down")
+            if (my_head["y"] <= height/2):
+                tt.append("down")
     
+    print(tt)
     return tt
 
-def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
+def check_trajectory(my_head, my_tail, badCoords, snake_coords, data, possible_moves):
     retval = []
     
     height = data["board"]["height"]
     width = data["board"]["width"]
     snake_heads = get_snake_array(0, data)
+    tail_test = (my_tail["x"], my_tail["y"])
     
     left = 0
     right = 0
     up = 0
     down = 0
     
-    factor = 12
+    factor = 10
     left_count = 0
     for i in range(0, my_head["x"] - 1):
         left_count += 3
@@ -615,6 +603,8 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
                 left += factor
+            elif test == tail_test:
+                left -= factor
             else:
                 left += 1
         test = (i, my_head["y"] + 1)
@@ -637,6 +627,8 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
                 right += factor
+            elif test == tail_test:
+                right -= factor
             else:
                 right += 1
         test = (i, my_head["y"] + 1)
@@ -659,6 +651,8 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
                 up += factor
+            elif test == tail_test:
+                up -= factor
             else:
                 up += 1
         test = (my_head["x"] + 1, i)
@@ -681,6 +675,8 @@ def check_trajectory(my_head, badCoords, snake_coords, data, possible_moves):
         if ((test in snake_coords) or (test in badCoords)):
             if test in snake_heads:
                 down += factor
+            elif test == tail_test:
+                down -= factor
             else:
                 down += 1
         test = (my_head["x"] + 1, i)
@@ -892,7 +888,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     width = data["board"]["width"]
     snake_coords = populate_snake_coords(data)
     matrix = build_matrix(width, height, data, snake_coords)
-    directions_by_empty = scan_empty_quadrant(matrix, width, height, possible_moves)
+    directions_by_empty = scan_empty_quadrant(matrix, width, height, possible_moves, my_head)
 
     votes_table = {}
     votes_table = vote(votes_table, preferred_moves2, 6.0)
@@ -900,14 +896,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     votes_table = vote(votes_table, directions_of_my_tail, 0.5)
     print("Tail: {}".format(votes_table))
     
-    votes_table = vote(votes_table, directions_by_empty, 2.0)
+    votes_table = vote(votes_table, directions_by_empty, 6.0)
     print("Empty Directions: {}".format(votes_table))
     
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
     votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1)
     print("Snake Head Danger: {}".format(votes_table))
-    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 4.0)
+    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 3.5)
     print("Trajectory: {}".format(votes_table))
     votes_table = vote(votes_table, tm, 2.0)
     print("Tail Move !: {}".format(votes_table))
@@ -1149,7 +1145,7 @@ def move():
     print("DEBUG: FF Moves: {}".format(ff_moves))
     print("DEBUG: FF Fits: {}".format(ff_fits))
 
-    ct = check_trajectory(my_head, bad_coords, snake_coords, data, possible_moves)
+    ct = check_trajectory(my_head, my_tail, bad_coords, snake_coords, data, possible_moves)
     print("DEBUG: Checking trajectory: {}".format(ct))
 
     # final decision
