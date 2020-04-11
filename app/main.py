@@ -368,7 +368,7 @@ def check_risky_business(move, snake_coords, possible_moves, data, width, height
                 break
         
         move_to_edge = 0
-        mte_factor = 0.1
+        mte_factor = 0.0
         if (move == "left" and (my_head["x"] == 1)):
             move_to_edge += mte_factor
         elif (move == "right" and (my_head["x"] == width - 2)):
@@ -1057,7 +1057,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 35
+    health_threshold = 95
     if ((my_size < 3) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
@@ -1123,7 +1123,7 @@ def move():
         val = build_floodfill_move(width, height, snake_coords, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)
         ff_moves.append(("right", val))
         if (val > size):
-            ff_fits.append(("right", 1.0))        
+            ff_fits.append(("right", 1.0))
     ff_moves.sort(key=lambda x: x[1], reverse=True)
 
     max_ff = 0
