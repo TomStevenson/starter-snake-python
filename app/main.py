@@ -158,12 +158,14 @@ def get_snake_array(index, data):
 # populate_snake_coords builds and returns an array of all snake coords on the board
 # data: json structure provided
 # returns: array of all snake coords on the board
-def populate_snake_coords(data):
+def populate_snake_coords(data, exclude_tails):
     snakeCoords= []
+    snake_tails = get_snake_array(-1, data)
     for snake in data["board"]["snakes"]:
         for xycoord in snake["body"]:
             bad = (xycoord["x"], xycoord["y"])
-            snakeCoords.append(bad)
+            if ((exclude_tails == False) or (bad not in snake_tails)):
+                snakeCoords.append(bad)
     return snakeCoords
 
 # get_shortest_snake returns the shortest snake object (not me) on the board
@@ -408,8 +410,7 @@ def build_matrix(width, height, data, snake_coords):
     for x in range(width):
         for y in range(height):
             testCoord = (x, y)
-            #tail = (my_tail["x"], my_tail["y"])
-            if ((testCoord in snake_coords) and (testCoord != snake_tails)):
+            if ((testCoord in snake_coords) and (testCoord not in snake_tails)):
                 matrix[x][y] = 's'
             else:
                 matrix[x][y] = 'e'
@@ -519,7 +520,7 @@ def check_ff_size(direction, ff_moves, my_size):
             print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
             direction = None
     else:
-        print("DEBUG: Floodfill size in preferred direction too small: {}".format(direction))
+        print("DEBUG: Floodfill size in supplied direction too small: {}".format(direction))
         new_direction = None
     return new_direction
 
@@ -645,7 +646,7 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails):
     # final decision
     threshold = 1.19
     #threshold = 0.82
@@ -685,12 +686,19 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         print("DEBUG: least risk move: {}".format(least_risk_direction))
         # test to make sure my snake can fit via flood fill in that direction
         least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
+        
         if (least_risk_direction != None):
-            directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
             # snake fits - we can stop looking
             print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
             direction = least_risk_direction
             break
+        else:
+            least_risk_direction = check_ff_size(lrm[0], ff_moves_no_tails, my_size)
+            if (least_risk_direction != None):
+                # snake fits - we can stop looking
+                print("DEBUG: snake fits when tails ignore - we can stop looking: {}".format(least_risk_direction))
+                direction = least_risk_direction
+                break
     
     if (direction == None):
         directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
@@ -719,7 +727,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         #    print("DEBUG: no preferred direction, so we want best ff option")
         height = data["board"]["height"]
         width = data["board"]["width"]
-        snake_coords = populate_snake_coords(data)
+        snake_coords = populate_snake_coords(data, False)
         matrix = build_matrix(width, height, data, snake_coords)
         affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
         for am in affinity_moves:
@@ -811,9 +819,8 @@ def move():
 
     # build list of all snake coordinates on the board
     snakes = data["board"]["snakes"]
-    snake_coords = populate_snake_coords(data)
-    
-    
+    snake_coords = populate_snake_coords(data, False)
+    snake_coords_no_tails = populate_snake_coords(data, True)
     #num_snakes = len(snakes)
 
 
@@ -897,9 +904,22 @@ def move():
     ff_moves.sort(key=lambda x: x[1], reverse=True)
     print("DEBUG: FF Moves: {}".format(ff_moves))
 
+    ff_moves_no_tails = []
+    if ("up" in last_ditch_possible_moves):
+        ff_moves_no_tails.append(("up", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)))
+    if ("down" in last_ditch_possible_moves):
+        ff_moves_no_tails.append(("down", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)))
+    if ("left" in last_ditch_possible_moves):
+        ff_moves_no_tails.append(("left", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)))
+    if ("right" in last_ditch_possible_moves):
+        ff_moves_no_tails.append(("right", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"] + 1, my_head["y"], my_head["x"], width - 1)))        
+    ff_moves_no_tails.sort(key=lambda x: x[1], reverse=True)
+    print("DEBUG: FF Moves No Tails: {}".format(ff_moves_no_tails))
+
+
     # final decision
     m = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, my_size, data, m, snake_heads, snake_tails)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails)
 
     return move_response(direction)
 
