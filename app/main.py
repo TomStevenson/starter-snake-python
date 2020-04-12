@@ -381,7 +381,7 @@ def check_risky_business(move, snake_coords, possible_moves, data, width, height
             move_to_edge += 0
   
         edges_adjust = 0
-        edge_factor = 40
+        edge_factor = 10
         if ((move == "up") or (move == "down")):
             if ((my_head["x"] == 0) or (my_head["x"] == width - 1)):
                 edges_adjust += edge_factor
