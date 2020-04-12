@@ -552,13 +552,13 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
     retval.append(("q2", q2))
     retval.append(("q3", q3))
     retval.append(("q4", q4))
-    print(q1)
-    print(q2)
-    print(q3)
-    print(q4)
+    #print(q1)
+    #print(q2)
+    #print(q3)
+    #print(q4)
      
     point = max(retval,key=lambda item:item[1])[0]
-    print("max = {}".format(point))
+    # print("max = {}".format(point))
     tt = []
     if ((point == "q1") and (head_q != "q1")):
         if ("up" in possible_moves):
@@ -589,7 +589,7 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
             if (my_head["y"] <= height/2):
                 tt.append("down")
     
-    print(tt)
+    #print(tt)
     return tt
 
 def check_trajectory(my_head, my_tail, badCoords, snake_coords, data, possible_moves):
@@ -614,7 +614,7 @@ def check_trajectory(my_head, my_tail, badCoords, snake_coords, data, possible_m
             if test in snake_heads:
                 left += factor
             elif test == tail_test:
-                left -= factor
+                left -= 1
             else:
                 left += 1
         test = (i, my_head["y"] + 1)
@@ -638,7 +638,7 @@ def check_trajectory(my_head, my_tail, badCoords, snake_coords, data, possible_m
             if test in snake_heads:
                 right += factor
             elif test == tail_test:
-                right -= factor
+                right -= 1
             else:
                 right += 1
         test = (i, my_head["y"] + 1)
@@ -662,7 +662,7 @@ def check_trajectory(my_head, my_tail, badCoords, snake_coords, data, possible_m
             if test in snake_heads:
                 up += factor
             elif test == tail_test:
-                up -= factor
+                up -= 1
             else:
                 up += 1
         test = (my_head["x"] + 1, i)
@@ -686,7 +686,7 @@ def check_trajectory(my_head, my_tail, badCoords, snake_coords, data, possible_m
             if test in snake_heads:
                 down += factor
             elif test == tail_test:
-                down -= factor
+                down -= 1
             else:
                 down += 1
         test = (my_head["x"] + 1, i)
@@ -905,19 +905,19 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     votes_table = vote(votes_table, preferred_moves2, 6.0)
     print("Preferred: {}".format(votes_table))
 
-    votes_table = vote(votes_table, directions_of_my_tail, 0.5)
-    print("Tail: {}".format(votes_table))
+    #votes_table = vote(votes_table, directions_of_my_tail, 0.5)
+    #print("Tail: {}".format(votes_table))
     
-    votes_table = vote(votes_table, directions_by_empty, 6.0)
+    votes_table = vote(votes_table, directions_by_empty, 4.0)
     print("Empty Directions: {}".format(votes_table))
     
     votes_table = vote_with_risk_weights(votes_table, extract_1(risk_moves), risk_moves)
     print("Risk: {}".format(votes_table))
 
-    votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 1.5)
-    print("Snake Head Danger: {}".format(votes_table))
+    #votes_table = vote_with_weights(votes_table, extract_1(shd2), shd2, 4.0)
+    #print("Snake Head Danger: {}".format(votes_table))
 
-    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 3.5)
+    votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 5.5)
     print("Trajectory: {}".format(votes_table))
 
     votes_table = vote(votes_table, tm, 2.0)
@@ -961,33 +961,12 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
             break
         print("DEBUG: Next scan - Highest FF = {}".format(direction))
     
-    # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
-        # Iterate over the sorted sequence
-        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
-        print("DEBUG: Last Ditch Possible Moves = {}".format(last_ditch_possible_moves))
-        for elem in newlist:
-            print("DEBUG: Next scan - Highest vote = {}".format(elem[0]))
-            if (elem[0] in possible_moves):
-                if (elem[0] in extract_1(ff_fits)):
-                    print("  DEBUG: LD FF size OK")
-                    direction = elem[0]
-                    break
-                elif (elem[0] in tm):
-                    print("  DEBUG: LD tail move OK")
-                    direction = elem[0]
-                    break
-
-    if (direction == None):
-        # Iterate over the sorted sequence
-        newlist = sorted(votes_table.items(), key=lambda x: x[1], reverse=True)
-        print("DEBUG: Next Last Ditch Possible Moves = {}".format(last_ditch_possible_moves))
-        for elem in newlist:
-            print("DEBUG: Next scan - Highest vote = {}".format(elem[0]))
-            if (elem[0] in last_ditch_possible_moves):
-                direction = elem[0]
-                break
-
+        for rm in risk_moves:
+            direction = rm[0]
+            print("DEBUG: picking lowest risk = {}".format(direction))
+            break
+        
     if (direction == None):
         # Iterate over the sorted sequence
         for ld in last_ditch_possible_moves:
