@@ -920,7 +920,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, av
     votes_table = vote_with_weights(votes_table, extract_1(trajectory), trajectory, 5.5)
     print("Trajectory: {}".format(votes_table))
 
-    votes_table = vote(votes_table, tm, 2.0)
+    votes_table = vote(votes_table, tm, 2.25)
     print("Tail Move !: {}".format(votes_table))
     
     if (len(votes_table) > 0):
@@ -1037,6 +1037,9 @@ def move():
     
     # specify health threshold to go get food
     health_threshold = 95
+    if (my_size > 18):
+        health_threshold = 35
+
     if ((my_size < 3) or (my_health <= health_threshold) or (longer_snake != None)):
         print("DEBUG: Go get food")
     elif (shortest_length < len(data["you"]["body"])):
