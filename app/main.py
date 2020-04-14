@@ -524,25 +524,32 @@ def check_ff_size(direction, ff_moves, my_size):
         new_direction = None
     return new_direction
 
-def is_move_my_tail(my_head, my_tail, my_size):
+def is_move_my_tail(my_head, snake_tails, my_size):
     retval = []
-    if ((my_head != my_tail) and (my_size > 3)):
-        # get coords of tail
-        tail = (my_tail["x"], my_tail["y"])
-        # build test points
-        up = (my_head["x"], my_head["y"] - 1)
-        down = (my_head["x"], my_head["y"] + 1)
-        left = (my_head["x"] - 1, my_head["y"])
-        right = (my_head["x"] + 1, my_head["y"])
-        #test points
-        if (up == tail):
-            retval.append("up")
-        if (down == tail):
-            retval.append("down")
-        if (left == tail):
-            retval.append("left")
-        if (right == tail):
-            retval.append("right")
+    if (my_size > 3):
+        for st in snake_tails:
+            # get coords of tail
+            #tail = (st["x"], st["y"])
+            print("TOM")
+            print(st)
+            # build test points
+            up = (my_head["x"], my_head["y"] - 1)
+            down = (my_head["x"], my_head["y"] + 1)
+            left = (my_head["x"] - 1, my_head["y"])
+            right = (my_head["x"] + 1, my_head["y"])
+            #test points
+            if (up == st):
+                if ("up" not in retval):
+                    retval.append("up")
+            if (down == st):
+                if ("down" not in retval):
+                    retval.append("down")
+            if (left == st):
+                if ("left" not in retval):
+                    retval.append("left")
+            if (right == st):
+                if ("right" not in retval):
+                    retval.append("right")
     return retval
 
 def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
@@ -677,7 +684,8 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (((my_head["x"] - 1) != (width - 1)) or (hungry == True)):
                 preferred_moves_modified.append("right")
 
-    tail_moves = is_move_my_tail(my_head, my_tail, my_size)
+    snake_tails = get_snake_array(-1, data)
+    tail_moves = is_move_my_tail(my_head, snake_tails, my_size)
     if (my_size > 5):
         for tm in tail_moves:
             if tm not in possible_moves:
