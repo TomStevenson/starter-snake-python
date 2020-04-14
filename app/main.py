@@ -42,7 +42,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#A63CF8"
+    color = "#f00000"
 
     return start_response(color)
 
@@ -650,15 +650,32 @@ def extract_1(lst):
 # ff_moves: array of flood fill moves sorted best to worst
 # my_size: length of my snake
 # returns: final direction to move
-def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails):
+def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
-    threshold = 1.01
+    threshold = 1.19
     #threshold = 0.82
     direction = None
     
     my_head = data["you"]["body"][0]
     my_size = len(data["you"]["body"])
     my_tail = data["you"]["body"][my_size-1]
+    height = data["board"]["height"]
+    width = data["board"]["width"]
+    
+    preferred_moves_modified = []
+    for pm in preferred_moves:
+        if pm == "up":
+            if (((my_head["y"] - 1) != 0) or (hungry == True)):
+                preferred_moves_modified.append("up")
+        if pm == "down":
+            if (((my_head["y"] + 1) != (height - 1)) or (hungry == True)):
+                preferred_moves_modified.append("down")
+        if pm == "left":
+            if (((my_head["x"] - 1) != 0) or (hungry == True)):
+                preferred_moves_modified.append("left")
+        if pm == "right":
+            if (((my_head["x"] - 1) != (width - 1)) or (hungry == True)):
+                preferred_moves_modified.append("right")
 
     tail_moves = is_move_my_tail(my_head, my_tail, my_size)
     if (my_size > 5):
@@ -675,9 +692,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     preferred_direction = None
     away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
     print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
-    preferred_direction = get_first_common_element(preferred_moves, away_from_heads)
+    preferred_direction = get_first_common_element(preferred_moves_modified, away_from_heads)
     if (preferred_direction == None):
-        for pm in preferred_moves:
+        for pm in preferred_moves_modified:
             preferred_direction = pm
             print("DEBUG: Preferred direction = {}".format(preferred_direction))
             break
@@ -729,8 +746,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         #        break
         #if (direction == None):
         #    print("DEBUG: no preferred direction, so we want best ff option")
-        height = data["board"]["height"]
-        width = data["board"]["width"]
+      
         snake_coords = populate_snake_coords(data, False)
         matrix = build_matrix(width, height, data, snake_coords)
         affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
@@ -853,9 +869,15 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 30
-    if ((my_head == my_tail) or (my_health <= health_threshold) or (longer_snake != None)):
+    health_threshold = 35
+    hungry = False
+    if (my_health <= health_threshold):
+        print("DEBUG: I am hungry")
+        hungry = True
+
+    if ((my_head == my_tail) or (hungry == True) or (longer_snake != None)):
         print("DEBUG: Go get food")
+        hungry = True
     elif (shortest_length < len(data["you"]["body"])):
         print("DEBUG: Chase shortest snake")
         target["x"] = shortest_snake["body"][0]["x"]
@@ -928,7 +950,7 @@ def move():
 
     # final decision
     m = build_matrix(width, height, data, snake_coords)
-    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails)
+    direction = make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry)
 
     return move_response(direction)
 
