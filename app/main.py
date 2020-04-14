@@ -652,7 +652,7 @@ def extract_1(lst):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails):
     # final decision
-    threshold = 1.19
+    threshold = 1.01
     #threshold = 0.82
     direction = None
     
