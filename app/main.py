@@ -524,34 +524,52 @@ def check_ff_size(direction, ff_moves, my_size):
         new_direction = None
     return new_direction
 
-def is_move_my_tail(my_head, snake_tails, my_size):
+def did_snake_not_grow(snake):
+    retval = False
+    snake_length = len(snake["body"])
+    if (snake_length >= 3):
+        tail = snake["body"][snake_length - 1]
+        tail_minus = snake["body"][snake_length - 2]
+        if (tail != tail_minus):
+            print("DEBUG: Snake DID NOT GROW")
+            retval = True
+        else:
+            print("DEBUG: Snake ate last round so grew !")
+            retval = False
+    return retval
+
+def is_move_my_tail(my_head, snakes, my_size):
     retval = []
-    if (my_size > 3):
-        for st in snake_tails:
-            # get coords of tail
-            #tail = (st["x"], st["y"])
-            print("TOM")
-            print(st)
+    if (my_size >= 3):
+        for snake in snakes:
+            the_size = len(snake["body"]) - 1
+            the_tail = (snake["body"][the_size]["x"], snake["body"][the_size]["y"])
+           
             # build test points
             up = (my_head["x"], my_head["y"] - 1)
             down = (my_head["x"], my_head["y"] + 1)
             left = (my_head["x"] - 1, my_head["y"])
             right = (my_head["x"] + 1, my_head["y"])
+            
             #test points
-            if (up == st):
+            if (up == the_tail):
                 if ("up" not in retval):
-                    retval.append("up")
-            if (down == st):
+                    if (did_snake_not_grow(snake)):
+                        retval.append("up")
+            if (down == the_tail):
                 if ("down" not in retval):
-                    retval.append("down")
-            if (left == st):
+                    if (did_snake_not_grow(snake)):
+                        retval.append("down")
+            if (left == the_tail):
                 if ("left" not in retval):
-                    retval.append("left")
-            if (right == st):
+                    if (did_snake_not_grow(snake)):
+                        retval.append("left")
+            if (right == the_tail):
                 if ("right" not in retval):
-                    retval.append("right")
+                    if (did_snake_not_grow(snake)):
+                        retval.append("right")
     return retval
-
+    
 def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
     retval = []
     # initalize counter variables
@@ -684,8 +702,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (((my_head["x"] - 1) != (width - 1)) or (hungry == True)):
                 preferred_moves_modified.append("right")
 
-    snake_tails = get_snake_array(-1, data)
-    tail_moves = is_move_my_tail(my_head, snake_tails, my_size)
+    tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
     if (my_size > 5):
         for tm in tail_moves:
             if tm not in possible_moves:
@@ -728,6 +745,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 print("DEBUG: snake fits when tails ignore - we can stop looking: {}".format(least_risk_direction))
                 direction = least_risk_direction
                 break
+            else:
+                if (lrm[0] in tail_moves):
+                    direction = lrm[0]
+                    print("DEBUG: least risk move is a tail move: {}".format(direction))
+                    break
     
     if (direction == None):
         directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
@@ -743,18 +765,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 lowest_risk_score = rm[1]
                 break
     else:
-        #direction = None
-        #directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-        #tom = get_common_elements(directions_of_my_tail, possible_moves)
-        #for t in tom:
-        #    ttt = check_ff_size(t, ff_moves, my_size)
-        #    if (ttt != None):
-        #        direction = t
-        #        print("DEBUG: trying a possible tail move")
-        #        break
-        #if (direction == None):
-        #    print("DEBUG: no preferred direction, so we want best ff option")
-      
         snake_coords = populate_snake_coords(data, False)
         matrix = build_matrix(width, height, data, snake_coords)
         affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
@@ -855,7 +865,6 @@ def move():
     snake_coords = populate_snake_coords(data, False)
     snake_coords_no_tails = populate_snake_coords(data, True)
     #num_snakes = len(snakes)
-
 
     # obtain information about my snake
     my_size = len(data["you"]["body"])
