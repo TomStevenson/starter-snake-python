@@ -357,7 +357,7 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
 
 def edge_check(move, width, height, data):
     retval = 0
-    factor = 2
+    factor = 5
     snake_heads = get_snake_array(0, data)
     my_head = data["you"]["body"][0]
 
