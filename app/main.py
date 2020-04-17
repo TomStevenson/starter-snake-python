@@ -977,6 +977,7 @@ def move():
     shortest_length = len(shortest_snake)
     # check if we have a longer snake on the board
     longer_snake = is_there_a_longer_snake(data)
+    number_of_active_snakes = len(data["board"]["snakes"])
 
     # get list of food and determine closest food to my head
     food_sorted_by_proximity = get_food_list(my_head, data)
@@ -988,6 +989,13 @@ def move():
     if (my_health <= health_threshold):
         print("DEBUG: I am hungry")
         hungry = True
+
+    if (number_of_active_snakes > 2):
+        amount_of_food = len(data["board"]["food"])
+        print(amount_of_food)
+        if (amount_of_food == 1):
+            print("DEBUG: Too many snakes, one piece of food - Danger")
+            hungry = False
 
     if ((my_head == my_tail) or (hungry == True) or (longer_snake != None)):
         print("DEBUG: Go get food")
