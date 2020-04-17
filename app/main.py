@@ -42,7 +42,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#f00000"
+    color = "#3dcd58"
 
     return start_response(color)
 
@@ -355,6 +355,102 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
         risk_factor = 0
     return risk_factor
 
+def edge_check(move, width, height, data):
+    retval = 0
+    factor = 2
+    snake_heads = get_snake_array(0, data)
+    my_head = data["you"]["body"][0]
+
+    if (move == "up"):
+        reference = 0
+        if (my_head["x"] == 0):
+            reference = 1
+            for y in range(my_head["y"] - 4, my_head["y"] + 1):
+                if (y >= 0):
+                    test_point = (reference, y)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+        
+        reference = width - 2
+        if (my_head["x"] == (width - 1)):
+            for y in range(my_head["y"] - 4, my_head["y"] + 1):
+                if (y >= 0):
+                    test_point = (reference, y)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+    
+    if (move == "down"):
+        reference = 0
+        if (my_head["x"] == 0):
+            reference = 1
+            for y in range(my_head["y"] - 1, my_head["y"] + 4):
+                if (y <= height - 1):
+                    test_point = (reference, y)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+        
+        reference = width - 2
+        if (my_head["x"] == (width - 1)):
+            for y in range(my_head["y"] - 1, my_head["y"] + 4):
+                if (y <= height - 1):
+                    test_point = (reference, y)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+    
+    if (move == "left"):
+        reference = 0
+        if (my_head["y"] == 0):
+            reference = 1
+            for x in range(my_head["x"] - 4, my_head["x"] + 1):
+                if (x >= 0):
+                    test_point = (x, reference)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+        
+        reference = height - 2
+        if (my_head["y"] == (height - 1)):
+            for x in range(my_head["x"] - 4, my_head["x"] + 1):
+                if (x <= width - 1):
+                    test_point = (x, reference)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+    
+    if (move == "right"):
+        reference = 0
+        if (my_head["y"] == 0):
+            reference = 1
+            for x in range(my_head["x"] - 1, my_head["x"] + 4):
+                if (x >= 0):
+                    test_point = (x, reference)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+        
+        reference = height - 2
+        if (my_head["y"] == (height - 1)):
+            for x in range(my_head["x"] - 1, my_head["x"] + 4):
+                if (x <= width - 1):
+                    test_point = (x, reference)
+                    if (test_point in snake_heads):
+                        retval = factor
+                        print("DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
+                        break
+    
+    return retval
+
 # check_risky_business: builds a tuple of move direction and its associated risk score
 # a1, a2, b1, b2: x and y to and from coordinates to scan
 # snake_coords: array of all snake coordinates
@@ -371,12 +467,13 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
             mode = 0
         risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
         scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data))
+        ec = edge_check(move, width, height, data)
         sv = 0
         for s in scan:
             if (s[0] == move):
                 sv = s[1]
                 break
-        tup = (move, risk_area + sv)
+        tup = (move, risk_area + sv + ec)
     return tup
 
 def get_directions_of_my_tail(my_head, my_tail, possible_moves):
