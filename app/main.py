@@ -990,16 +990,15 @@ def move():
         print("DEBUG: I am hungry")
         hungry = True
 
-    if (number_of_active_snakes > 2):
-        amount_of_food = len(data["board"]["food"])
-        print(amount_of_food)
-        if (amount_of_food == 1):
-            print("DEBUG: Too many snakes, one piece of food - Danger")
-            hungry = False
-
     if ((my_head == my_tail) or (hungry == True) or (longer_snake != None)):
         print("DEBUG: Go get food")
         hungry = True
+        if (number_of_active_snakes > 2):
+            amount_of_food = len(data["board"]["food"])
+            if (amount_of_food == 1):
+                print("DEBUG: Too many snakes, one piece of food - Danger")
+                target["x"] = my_tail["x"]
+                target["y"] = my_tail["y"]
     elif (shortest_length < len(data["you"]["body"])):
         print("DEBUG: Chase shortest snake")
         target["x"] = shortest_snake["body"][0]["x"]
