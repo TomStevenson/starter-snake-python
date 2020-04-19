@@ -856,7 +856,6 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
         
     if (len(preferred_moves_modified) > 0):
         print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
-        return preferred_moves_modified
 
     for pm in preferred_moves:
         if pm == "up":
@@ -886,8 +885,8 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
-    threshold = 1.04
-    #threshold = 1.19 best
+    # threshold = 1.04
+    threshold = 1.19
     #threshold = 1.23
     direction = None
     
