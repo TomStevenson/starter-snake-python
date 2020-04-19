@@ -61,6 +61,9 @@ def get_food_list(snake_head, data):
     l.append(closest)
     return l
 
+
+# Gets an element from x that is common for both lists
+# or return None if no such an element is found. 
 def get_common_elements(x,y):
     retval = []
     for i in x:
