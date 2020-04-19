@@ -42,7 +42,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#3dcd58"
+    color = "#ffcd60"
 
     return start_response(color)
 
@@ -451,6 +451,24 @@ def edge_check(move, width, height, data):
     
     return retval
 
+def move_to_edge(move, width, height, data):
+    retval = 0
+    factor = 0.2
+    my_head = data["you"]["body"][0]
+    if (move == "left"):
+        if ((my_head["x"] - 1) == 0):
+            retval = factor
+    if (move == "right"):
+        if ((my_head["x"] + 1) == width - 1):
+            retval = factor
+    if (move == "up"):
+        if ((my_head["y"] - 1) == 0):
+            retval = factor
+    if (move == "down"):
+        if ((my_head["y"] + 1) == height - 1):
+            retval = factor
+    return retval
+
 # check_risky_business: builds a tuple of move direction and its associated risk score
 # a1, a2, b1, b2: x and y to and from coordinates to scan
 # snake_coords: array of all snake coordinates
@@ -468,12 +486,13 @@ def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, dat
         risk_area = check_risk_area(a1, a2, b1, b2, snake_coords, data["you"]["body"], snakes, mode, width, height)
         scan = scan_matrix(build_matrix(width, height, data, snake_coords), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data))
         ec = edge_check(move, width, height, data)
+        mte = move_to_edge(move, width, height, data)
         sv = 0
         for s in scan:
             if (s[0] == move):
                 sv = s[1]
                 break
-        tup = (move, risk_area + sv + ec)
+        tup = (move, risk_area + sv + ec + mte)
     return tup
 
 def get_directions_of_my_tail(my_head, my_tail, possible_moves):
@@ -610,7 +629,7 @@ def get_ff_size(direction, ff_moves):
 def check_ff_size(direction, ff_moves, my_size):
     new_direction = None
     ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size >= my_size):
+    if (ff_size >= my_size + 1):
         new_direction = direction
         print("DEBUG: choosing supplied direction: {}".format(new_direction))
         if (ff_size < 2*my_size):
@@ -721,10 +740,6 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
     retval.append(("q2", q2))
     retval.append(("q3", q3))
     retval.append(("q4", q4))
-    #print(q1)
-    #print(q2)
-    #print(q3)
-    #print(q4)
      
     point = max(retval,key=lambda item:item[1])[0]
     # print("max = {}".format(point))
@@ -758,12 +773,64 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
             if (my_head["y"] <= height/2):
                 tt.append("down")
     
-    #print(tt)
     return tt
 
 # helper function to return a list of first elements in a dictionary
 def extract_1(lst): 
     return [item[0] for item in lst] 
+
+def snake_head_test(data, a, b1, b2):
+    retval = False
+    snake_heads = get_snake_array(0, data)
+    test1 = (a, b1)
+    test2 = (a, b2)
+    if ((test1 in snake_heads) or (test2 in snake_heads)):
+        retval = True
+    return retval
+
+def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
+    preferred_moves_modified = []
+    my_head = data["you"]["body"][0]
+    height = data["board"]["height"]
+    width = data["board"]["width"]
+    if (snake_head_test(data, my_head["x"] + 1, my_head["y"] - 1, my_head["y"] + 1) == True):
+        if ("left" in possible_moves):
+            if ((my_head["y"] == 1) or (my_head["y"] == (height - 2))):
+                preferred_moves_modified.append("left")
+    if (snake_head_test(data, my_head["x"] - 1, my_head["y"] - 1, my_head["y"] + 1) == True):
+        if ("right" in possible_moves):
+            if ((my_head["y"] == 1) or (my_head["y"] == (height - 2))):
+                preferred_moves_modified.append("right")
+    if (snake_head_test(data, my_head["y"] + 1, my_head["x"] - 1, my_head["x"] + 1) == True):
+        if ("up" in possible_moves):
+            if ((my_head["x"] == 1) or (my_head["x"] == (width - 2))):
+                preferred_moves_modified.append("up")
+    if (snake_head_test(data, my_head["y"] - 1, my_head["x"] - 1, my_head["x"] + 1) == True):
+        if ("down" in possible_moves):
+            if ((my_head["x"] == 1) or (my_head["x"] == (width - 2))):
+                preferred_moves_modified.append("down")
+
+    if (len(preferred_moves_modified) > 0):
+        print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
+    
+    for pm in preferred_moves:
+        if pm == "up":
+            if (((my_head["y"] - 1) != 0) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
+                if ("up" not in preferred_moves_modified):
+                    preferred_moves_modified.append("up")
+        if pm == "down":
+            if (((my_head["y"] + 1) != (height - 1)) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
+                if ("down" not in preferred_moves_modified):
+                    preferred_moves_modified.append("down")
+        if pm == "left":
+            if (((my_head["x"] - 1) != 0) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
+                if ("left" not in preferred_moves_modified):
+                    preferred_moves_modified.append("left")
+        if pm == "right":
+            if (((my_head["x"] - 1) != (width - 1)) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
+                if ("right" not in preferred_moves_modified):
+                    preferred_moves_modified.append("right")
+    return preferred_moves_modified
 
 # make_decision: logic to pick the desired move of the snake
 # preferred_moves: array of the preffered directions to move to get to target
@@ -775,7 +842,7 @@ def extract_1(lst):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
     threshold = 1.19
-    #threshold = 0.82
+    #threshold = 1.23
     direction = None
     
     my_head = data["you"]["body"][0]
@@ -784,23 +851,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     height = data["board"]["height"]
     width = data["board"]["width"]
     
-    preferred_moves_modified = []
-    for pm in preferred_moves:
-        if pm == "up":
-            if (((my_head["y"] - 1) != 0) or (hungry == True)):
-                preferred_moves_modified.append("up")
-        if pm == "down":
-            if (((my_head["y"] + 1) != (height - 1)) or (hungry == True)):
-                preferred_moves_modified.append("down")
-        if pm == "left":
-            if (((my_head["x"] - 1) != 0) or (hungry == True)):
-                preferred_moves_modified.append("left")
-        if pm == "right":
-            if (((my_head["x"] - 1) != (width - 1)) or (hungry == True)):
-                preferred_moves_modified.append("right")
+    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, data, hungry)
+    print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
 
     tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
-    if (my_size > 5):
+    if (my_size > 3):
         for tm in tail_moves:
             if tm not in possible_moves:
                 possible_moves.append(tm)
