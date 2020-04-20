@@ -61,9 +61,6 @@ def get_food_list(snake_head, data):
     l.append(closest)
     return l
 
-
-# Gets an element from x that is common for both lists
-# or return None if no such an element is found. 
 def get_common_elements(x,y):
     retval = []
     for i in x:
@@ -805,12 +802,6 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
     
     return tt
 
-def check_if_clear_path_to_tail(my_head, my_tail):
-    retval = False
-
-
-    return retval
-
 # helper function to return a list of first elements in a dictionary
 def extract_1(lst): 
     return [item[0] for item in lst] 
@@ -859,6 +850,7 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
         
     if (len(preferred_moves_modified) > 0):
         print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
+        return preferred_moves_modified
 
     for pm in preferred_moves:
         if pm == "up":
