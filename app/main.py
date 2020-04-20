@@ -600,7 +600,7 @@ def floodfill_algorithm(matrix, x, y, count):
             count = floodfill_algorithm(matrix, x+1, y, count)
         if y > 0:
             count = floodfill_algorithm(matrix, x, y-1, count)
-        if y < len(matrix) - 1:
+        if y < len(matrix[x]) - 1:
             count = floodfill_algorithm(matrix, x, y+1, count)
     return count
 
@@ -611,27 +611,44 @@ def build_floodfill_move(width, height, snake_coords, data, x, y, test1, test2):
         ff = floodfill_algorithm(build_matrix(width, height, snake_coords, data), x, y, 0)
     return ff
 
+def check_for_clear_path(matrix, direction, x, y, my_tail):
+    x_factor = 0
+    y_factor = 0
+    if (direction == "left"):
+        x_factor = -1
+    if (direction == "right"):
+        x_factor = 1
+    if (direction == "up"):
+        y_factor = -1
+    if (direction == "down"):
+        y_factor = 1
+    retval = clear_path_to_my_tail(matrix, x + x_factor, y + y_factor, my_tail)
+    return retval
+
 def clear_path_to_my_tail(matrix, x, y, my_tail):
     retval = False
     if matrix[x][y] == 'e':  
         test = (x, y)
-        if test in my_tail:
+        print(test)
+        tail_point = (my_tail["x"], my_tail["y"])
+        print(tail_point)
+        if test == tail_point:
             return True
         matrix[x][y] = ' '
         if x > 0:
-            r = clear_path_to_my_tail(matrix, x-1, y, my_tail)
+            r = clear_path_to_my_tail(matrix, x - 1, y, my_tail)
             if (r == True):
                 return True
         if x < len(matrix[y]) - 1:
-            r = clear_path_to_my_tail(matrix, x+1, y, my_tail)
+            r = clear_path_to_my_tail(matrix, x + 1, y, my_tail)
             if (r == True):
                 return True
         if y > 0:
-            r = clear_path_to_my_tail(matrix, x, y-1, my_tail)
+            r = clear_path_to_my_tail(matrix, x, y - 1, my_tail)
             if (r == True):
                 return True
-        if y < len(matrix) - 1:
-            r = clear_path_to_my_tail(matrix, x, y+1, my_tail)
+        if y < len(matrix[x]) - 1:
+            r = clear_path_to_my_tail(matrix, x, y + 1, my_tail)
             if (r == True):
                 return True
     return retval
@@ -938,20 +955,24 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 direction = least_risk_direction
                 break
             else:
-                cp = clear_path_to_my_tail(m, my_head["x"], my_head["y"], my_tail)
+                cp = check_for_clear_path(m, least_risk_direction, my_head["x"], my_head["y"], my_tail)
                 if (cp == True):
                     direction = least_risk_direction
-                    print("DEBUG: We have a least risk move clear path to tail: {}".format(direction))
+                    print("DEBUG: TOM We have a least risk move clear path to tail: {}".format(direction))
                     break
+                else:
+                     print("DEBUG: TOM NO clear path to tail: {}".format(direction))
     
     if (direction == None):
-        cp = clear_path_to_my_tail(m, my_head["x"], my_head["y"], my_tail)
-        if (cp == True):
-            directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-            for domt in directions_of_my_tail:
+        directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
+        for domt in directions_of_my_tail:
+            cp = check_for_clear_path(m, domt, my_head["x"], my_head["y"], my_tail)
+            if (cp == True):
                 direction = domt
-                print("DEBUG: We have a clear path to tail: {}".format(direction))
+                print("DEBUG: TOM2 We have a clear path to tail: {}".format(direction))
                 break
+        else:
+            print("DEBUG: TOM2 NO clear path to tail: {}".format(direction))
 
     # obtain the lowest risk score of the preferred move options
     lowest_risk_score = -1
