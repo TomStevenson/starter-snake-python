@@ -962,18 +962,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                     break
                 else:
                      print("DEBUG: TOM NO clear path to tail: {}".format(direction))
-    
-    if (direction == None):
-        directions_of_my_tail = get_directions_of_my_tail(my_head, my_tail, possible_moves)
-        for domt in directions_of_my_tail:
-            cp = check_for_clear_path(m, domt, my_head["x"], my_head["y"], my_tail)
-            if (cp == True):
-                direction = domt
-                print("DEBUG: TOM2 We have a clear path to tail: {}".format(direction))
-                break
-        else:
-            print("DEBUG: TOM2 NO clear path to tail: {}".format(direction))
-
+        
     # obtain the lowest risk score of the preferred move options
     lowest_risk_score = -1
     if (preferred_direction != None):        
@@ -997,7 +986,14 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (temp_direction == preferred_direction):
                 direction = temp_direction
         if ((direction == None) and (preferred_direction != None)):
-            direction = check_ff_size(preferred_direction, ff_moves_no_tails, my_size)
+            temp_direction = check_ff_size(preferred_direction, ff_moves_no_tails, my_size)
+            cp = check_for_clear_path(m, temp_direction, my_head["x"], my_head["y"], my_tail)
+                if (cp == True):
+                    direction = temp_direction
+                    print("DEBUG: We have a least risk move with clear path to tail(2): {}".format(direction))
+                    break
+                else:
+                     print("DEBUG: No clear path to tail(2): {}".format(direction))
     
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
