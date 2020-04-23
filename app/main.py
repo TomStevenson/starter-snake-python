@@ -267,9 +267,6 @@ def test_for_snake_head(direction, coords_to_test, snake_heads, data):
 # returns: returns an array of bad directions that will encounter snake heads
 def get_snake_heads_to_avoid(my_head, snake_heads, data):
     temp = []
-    height = data["board"]["height"]
-    width = data["board"]["width"]
-
     test_areas = []
     test_areas.append((my_head["x"] - 1, my_head["y"]))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
@@ -278,7 +275,6 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
     temp = test_for_snake_head("left", test_areas, snake_heads, data)
-    
     test_areas.clear()
     test_areas.append((my_head["x"] + 1, my_head["y"]))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
@@ -287,7 +283,6 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
     temp = temp + test_for_snake_head("right", test_areas, snake_heads, data)
-
     test_areas.clear()
     test_areas.append((my_head["x"], my_head["y"] - 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
@@ -296,7 +291,6 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
     temp = temp + test_for_snake_head("up", test_areas, snake_heads, data)
-
     test_areas.clear()
     test_areas.append((my_head["x"], my_head["y"] + 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
