@@ -277,12 +277,6 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] - 2, my_head["y"]))
     test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
-    if (my_head["y"] == (height - 1)):
-        test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
-        test_areas.append((my_head["x"] - 2, my_head["y"] - 2))
-    if (my_head["y"] == 0):
-        test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
-        test_areas.append((my_head["x"] - 2, my_head["y"] + 2))
     temp = test_for_snake_head("left", test_areas, snake_heads, data)
     
     test_areas.clear()
@@ -292,12 +286,6 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] + 2, my_head["y"]))
     test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
     test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
-    if (my_head["y"] == (height - 1)):
-        test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
-        test_areas.append((my_head["x"] + 2, my_head["y"] - 2))
-    if (my_head["y"] == 0):
-        test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
-        test_areas.append((my_head["x"] + 2, my_head["y"] + 2))
     temp = temp + test_for_snake_head("right", test_areas, snake_heads, data)
 
     test_areas.clear()
@@ -307,12 +295,6 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"], my_head["y"] - 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
-    if (my_head["x"] == (width - 1)):
-        test_areas.append((my_head["x"] - 2, my_head["y"] - 1))
-        test_areas.append((my_head["x"] - 2, my_head["y"] - 2))
-    if (my_head["x"] == 0):
-        test_areas.append((my_head["x"] + 2, my_head["y"] - 1))
-        test_areas.append((my_head["x"] + 2, my_head["y"] - 2))
     temp = temp + test_for_snake_head("up", test_areas, snake_heads, data)
 
     test_areas.clear()
@@ -322,12 +304,6 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"], my_head["y"] + 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
-    if (my_head["x"] == (width - 1)):
-        test_areas.append((my_head["x"] - 2, my_head["y"] + 1))
-        test_areas.append((my_head["x"] - 2, my_head["y"] + 2))
-    if (my_head["x"] == 0):
-        test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
-        test_areas.append((my_head["x"] + 2, my_head["y"] + 2))
     temp = temp + test_for_snake_head("down", test_areas, snake_heads, data)
     print("DEBUG: Avoid Head Moves: {}".format(temp))
     return temp
