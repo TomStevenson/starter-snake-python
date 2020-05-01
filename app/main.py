@@ -929,7 +929,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 ff_moves.append((tm, 999999))
     print("DEBUG: Tail Moves!: {}".format(tail_moves))
 
-    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, last_ditch_possible_moves)
+    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, possible_moves)
     print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
     
     # kill
@@ -976,7 +976,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     if (direction == None):
         for rm in risk_moves:
             if (clear_path_to_a_tail(m, my_head["x"], my_head["y"], data)):
-                print("DEBUG: Lowest risk with clear path to a tail={}".format(last_ditch_possible_moves))
+                print("DEBUG: Lowest risk with clear path to a tail={}".format(rm[0]))
                 direction = rm[0]
                 break
             
