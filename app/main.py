@@ -90,7 +90,7 @@ def get_food_list(snake_head, data):
         if current_score < last_score:
             tom = get_food_risk(current_food["x"], current_food["y"], snake_head, data)
             print("FOOD RISK: {}".format(tom))
-            if (tom >= 2):
+            if (tom >= 3):
                 if (this_is_a_corner(current_food["x"], current_food["y"], data) == False):
                     closest = current_food
                     last_score = current_score
@@ -1042,12 +1042,19 @@ def move():
 
     # get list of food and determine closest food to my head
     food_sorted_by_proximity = get_food_list(my_head, data)
-    target = []
-    target.append((my_tail["x"], my_tail["y"]))
-    if (food_sorted_by_proximity):
-        target = food_sorted_by_proximity[0]
+    target = {}
+    target["x"] = my_tail["x"]
+    target["y"] = my_tail["y"]
+    print("TOM")
+    print(len(food_sorted_by_proximity))
+    print(target)
+    first = food_sorted_by_proximity.pop(0)
+    if (len(first) > 0):
+        print("problem1")
+        target = first
     else:
         print("DEBUG: No suitable food !")
+    print("DEBUG: Initial Target: {}".format(target))
     
     # specify health threshold to go get food
     health_threshold = 30
@@ -1067,6 +1074,8 @@ def move():
         print("DEBUG: Chase my tail")
         target["x"] = my_tail["x"]
         target["y"] = my_tail["y"]
+    
+    print("DEBUG: Updated Target: {}".format(target))
 
     # determine possible moves - remove any entries where we need to avoid snake heads
     possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
