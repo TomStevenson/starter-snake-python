@@ -1053,8 +1053,8 @@ def move():
     # get list of food and determine closest food to my head
     food_sorted_by_proximity = get_food_list(my_head, data)
     target = {}
-    target["x"] = my_tail["x"]
-    target["y"] = my_tail["y"]
+    target["x"] = shortest_snake["body"][0]["x"]
+    target["y"] = shortest_snake["body"][0]["y"]
     first = food_sorted_by_proximity.pop(0)
     if (len(first) > 0):
         target = first
