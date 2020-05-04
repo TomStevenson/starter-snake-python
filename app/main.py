@@ -102,7 +102,7 @@ def get_food_list(snake_head, data):
 def get_common_elements(x,y):
     retval = []
     for i in x:
-        if ((i in y) or (len(y) == 0)):
+        if (i in y):
             retval.append(i)
     return retval
 
@@ -129,28 +129,28 @@ def is_snake_longer_than_me(data, snake_head):
                 break
     return longer_snake
 
-def which_directions_are_away_from_snake_heads(my_head, snake_heads, data, possible_moves):
+def directions_toward_bigger_snake_heads(my_head, snake_heads, data, possible_moves):
     retval = []
     for sh in snake_heads:
         if (is_snake_longer_than_me(data, sh)):
             x = my_head["x"] - sh[0]
-            if (x > 0):
-                if ("right" not in snake_heads):
-                    if ("right" in possible_moves):
-                        retval.append("right")
-            if (x < 0):
-                if ("left" not in snake_heads):
+            print(x)
+            y = my_head["y"] - sh[1]
+            print(y)
+            z = abs(x) + abs(y)
+            if (z <= 6):
+                if (x > 0):
                     if ("left" in possible_moves):
                         retval.append("left")
-            y = my_head["y"] - sh[1]
-            if (y > 0):
-                if ("down" not in snake_heads):
-                    if ("down" in possible_moves):
-                        retval.append("down")
-            if (y < 0):
-                if ("up" not in snake_heads):
+                if (x < 0):
+                    if ("right" in possible_moves):
+                        retval.append("right")
+                if (y > 0):
                     if ("up" in possible_moves):
                         retval.append("up")
+                if (y < 0):
+                    if ("down" in possible_moves):
+                        retval.append("down")
     return retval
 
 # populate_bad_coords: define perimeter coordinates just outside the board
@@ -860,7 +860,7 @@ def get_kill_moves(possible_moves, data):
         print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
     return preferred_moves_modified    
 
-def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
+def modify_preferred_moves(preferred_moves, possible_moves, toward_heads, data, hungry):
     preferred_moves_modified = []
     my_head = data["you"]["body"][0]
     height = data["board"]["height"]
@@ -869,21 +869,24 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
         if pm == "up":
             if (((my_head["y"] - 1) != 0) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("up" not in preferred_moves_modified):
-                    preferred_moves_modified.append("up")
+                    if ("up" not in toward_heads):
+                        preferred_moves_modified.append("up")
         if pm == "down":
             if (((my_head["y"] + 1) != (height - 1)) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("down" not in preferred_moves_modified):
-                    preferred_moves_modified.append("down")
+                    if ("down" not in toward_heads):
+                        preferred_moves_modified.append("down")
         if pm == "left":
             if (((my_head["x"] - 1) != 0) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
                 if ("left" not in preferred_moves_modified):
-                    preferred_moves_modified.append("left")
+                    if ("left" not in toward_heads):
+                        preferred_moves_modified.append("left")
         if pm == "right":
             if (((my_head["x"] - 1) != (width - 1)) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
                 if ("right" not in preferred_moves_modified):
-                    preferred_moves_modified.append("right")
+                    if ("right" not in toward_heads):
+                        preferred_moves_modified.append("right")
     return preferred_moves_modified
-
 
 def validate_move(move, risk_moves, ff_moves, my_size, m, x, y, my_tail, data):
     retval = False
@@ -924,7 +927,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     height = data["board"]["height"]
     width = data["board"]["width"]
     
-    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, data, hungry)
+    toward_heads = directions_toward_bigger_snake_heads(my_head, get_snake_array(0, data), data, possible_moves)
+    print("DEBUG: Directions toward bigger snake heads = {}".format(toward_heads))
+    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, toward_heads, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
 
     tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
@@ -937,9 +942,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if tm not in extract_1(ff_moves):
                 ff_moves.append((tm, 999999))
     print("DEBUG: Tail Moves!: {}".format(tail_moves))
-
-    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data, possible_moves)
-    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
     
     # kill
     preferred_direction = None
@@ -953,7 +955,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     # preferred direction
     preferred_direction = None
     if (direction == None):
-        for pd in get_common_elements(extract_1(risk_moves),preferred_moves_modified):
+        for pd in get_common_elements(extract_1(risk_moves), preferred_moves_modified):
             preferred_direction = pd
             print("DEBUG: Preferred direction modified = {}".format(preferred_direction))
             if (validate_move(preferred_direction, risk_moves, ff_moves, my_size, m, my_head["x"], my_head["y"], my_tail, data) == True):
@@ -961,7 +963,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 break
     
     if (direction == None):
-        for pd in get_common_elements(extract_1(risk_moves),preferred_moves):
+        for pd in get_common_elements(extract_1(risk_moves), preferred_moves):
             preferred_direction = pd
             print("DEBUG: Preferred direction = {}".format(preferred_direction))
             if (validate_move(preferred_direction, risk_moves, ff_moves, my_size, m, my_head["x"], my_head["y"], my_tail, data) == True):
