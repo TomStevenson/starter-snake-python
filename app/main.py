@@ -860,7 +860,7 @@ def get_kill_moves(possible_moves, data):
         print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
     return preferred_moves_modified    
 
-def modify_preferred_moves(preferred_moves, possible_moves, toward_heads, data, hungry):
+def modify_preferred_moves(preferred_moves, possible_moves, toward_heads, affinity_moves, data, hungry):
     preferred_moves_modified = []
     my_head = data["you"]["body"][0]
     height = data["board"]["height"]
@@ -886,6 +886,12 @@ def modify_preferred_moves(preferred_moves, possible_moves, toward_heads, data, 
                 if ("right" not in preferred_moves_modified):
                     if ("right" not in toward_heads):
                         preferred_moves_modified.append("right")
+    
+    for am in affinity_moves:
+        if am not in preferred_moves_modified:
+            print("DEBUG: Adding affinity move: {}".format(am))
+            preferred_moves_modified.append(am)
+
     return preferred_moves_modified
 
 def validate_move(move, risk_moves, ff_moves, my_size, m, x, y, my_tail, data):
@@ -929,12 +935,20 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     
     toward_heads = directions_toward_bigger_snake_heads(my_head, get_snake_array(0, data), data, possible_moves)
     print("DEBUG: Directions toward bigger snake heads = {}".format(toward_heads))
-    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, toward_heads, data, hungry)
+
+    snake_coords = populate_snake_coords(data, False)
+    matrix = build_matrix(width, height, snake_coords, data)
+    affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
+    print("DEBUG: Affinity Moves = {}".format(affinity_moves))
+    
+    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, toward_heads, affinity_moves, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
 
     tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
     if (my_size > 3):
         for tm in tail_moves:
+            if tm not in preferred_moves_modified:
+                preferred_moves_modified.append(tm)
             if tm not in possible_moves:
                 possible_moves.append(tm)
             if tm not in extract_1(risk_moves):
