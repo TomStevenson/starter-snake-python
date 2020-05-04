@@ -947,8 +947,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
     if (my_size > 3):
         for tm in tail_moves:
-            if tm not in preferred_moves_modified:
-                preferred_moves_modified.append(tm)
             if tm not in possible_moves:
                 possible_moves.append(tm)
             if tm not in extract_1(risk_moves):
