@@ -860,7 +860,7 @@ def get_kill_moves(possible_moves, data):
         print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
     return preferred_moves_modified    
 
-def modify_preferred_moves(preferred_moves, possible_moves, toward_heads, affinity_moves, data, hungry):
+def modify_preferred_moves(preferred_moves, possible_moves, towards_heads, data, hungry):
     preferred_moves_modified = []
     my_head = data["you"]["body"][0]
     height = data["board"]["height"]
@@ -869,28 +869,24 @@ def modify_preferred_moves(preferred_moves, possible_moves, toward_heads, affini
         if pm == "up":
             if (((my_head["y"] - 1) != 0) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("up" not in preferred_moves_modified):
-                    if ("up" not in toward_heads):
-                        preferred_moves_modified.append("up")
+                    preferred_moves_modified.append("up")
         if pm == "down":
             if (((my_head["y"] + 1) != (height - 1)) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("down" not in preferred_moves_modified):
-                    if ("down" not in toward_heads):
-                        preferred_moves_modified.append("down")
+                    preferred_moves_modified.append("down")
         if pm == "left":
             if (((my_head["x"] - 1) != 0) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
                 if ("left" not in preferred_moves_modified):
-                    if ("left" not in toward_heads):
-                        preferred_moves_modified.append("left")
+                    preferred_moves_modified.append("left")
         if pm == "right":
             if (((my_head["x"] - 1) != (width - 1)) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
                 if ("right" not in preferred_moves_modified):
-                    if ("right" not in toward_heads):
-                        preferred_moves_modified.append("right")
+                    preferred_moves_modified.append("right")
     
-    for am in affinity_moves:
-        if am not in preferred_moves_modified:
-            print("DEBUG: Adding affinity move: {}".format(am))
-            preferred_moves_modified.append(am)
+    for pm in preferred_moves:
+        if pm in towards_heads:
+            if pm in preferred_moves_modified:
+                preferred_moves_modified.remove(pm)
 
     return preferred_moves_modified
 
@@ -936,12 +932,12 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     toward_heads = directions_toward_bigger_snake_heads(my_head, get_snake_array(0, data), data, possible_moves)
     print("DEBUG: Directions toward bigger snake heads = {}".format(toward_heads))
 
-    snake_coords = populate_snake_coords(data, False)
-    matrix = build_matrix(width, height, snake_coords, data)
-    affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
-    print("DEBUG: Affinity Moves = {}".format(affinity_moves))
+    #snake_coords = populate_snake_coords(data, False)
+    #matrix = build_matrix(width, height, snake_coords, data)
+    #affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
+    #print("DEBUG: Affinity Moves = {}".format(affinity_moves))
     
-    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, toward_heads, affinity_moves, data, hungry)
+    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, toward_heads, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
 
     tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
