@@ -895,13 +895,17 @@ def validate_move(move, risk_moves, ff_moves, my_size, m, x, y, my_tail, data):
     if (check_ff_size(move, ff_moves, my_size)):
         retval = True
         print("DEBUG: validate_move: floodfill size ok {}".format(move))
+        cp = clear_path_to_a_tail(m, x, y, data)
+        if (cp == True):
+            retval = True
+            print("DEBUG: validate_move: We have a clear path to tail: {}".format(move))
     else:
         cp = clear_path_to_a_tail(m, x, y, data)
         if (cp == True):
             retval = True
-            print("DEBUG: We have a clear path to tail: {}".format(move))
+            print("DEBUG: validate_move: Too small, but we have a clear path to tail: {}".format(move))
         else:
-            print("DEBUG: No clear path to a tail: {}".format(move))
+            print("DEBUG: validate_move: Too small, NO clear path to a tail: {}".format(move))
     
     if (len(risk_moves) > 1):
         for lrm in risk_moves:
