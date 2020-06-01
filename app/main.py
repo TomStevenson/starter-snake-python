@@ -134,9 +134,9 @@ def directions_toward_bigger_snake_heads(my_head, snake_heads, data, possible_mo
     for sh in snake_heads:
         if (is_snake_longer_than_me(data, sh)):
             x = my_head["x"] - sh[0]
-            print(x)
+            #print(x)
             y = my_head["y"] - sh[1]
-            print(y)
+            #print(y)
             z = abs(x) + abs(y)
             if (z <= 6):
                 if (x > 0):
@@ -667,9 +667,9 @@ def check_ff_size(direction, ff_moves, my_size):
     if (ff_size >= my_size - 1):
         new_direction = direction
         #print("DEBUG: choosing supplied direction: {}".format(new_direction))
-        if (ff_size < 2*my_size):
-            print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
-            direction = None
+        #if (ff_size < 2*my_size):
+        #    print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
+        #    direction = None
     else:
         print("DEBUG: Floodfill size in supplied direction too small: {}".format(direction))
         new_direction = None
@@ -860,7 +860,36 @@ def get_kill_moves(possible_moves, data):
         print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
     return preferred_moves_modified    
 
-def modify_preferred_moves(preferred_moves, possible_moves, towards_heads, data, hungry):
+def modify_corners(preferred_moves, data):
+    corners = []
+    my_head = data["you"]["body"][0]
+    height = data["board"]["height"]
+    width = data["board"]["width"]
+    for pm in preferred_moves:
+        if pm == "up":
+            y = my_head["y"] - 1
+            if (y > 2):
+               if ("up" not in corners):
+                corners.append("up")
+        if pm == "down":
+            y = my_head["y"] + 1
+            if (y < height - 3):
+               if ("down" not in corners):
+                corners.append("down")
+        if pm == "left":
+            x = my_head["x"] - 1
+            if (x > 2):
+               if ("left" not in corners):
+                corners.append("left")
+        if pm == "right":
+            x = my_head["x"] + 1
+            if (x < width - 3):
+               if ("right" not in corners):
+                corners.append("right")
+
+    return corners
+
+def modify_preferred_moves(preferred_moves, towards_heads, data, hungry):
     preferred_moves_modified = []
     my_head = data["you"]["body"][0]
     height = data["board"]["height"]
@@ -910,7 +939,7 @@ def validate_move(move, risk_moves, ff_moves, my_size, m, x, y, my_tail, data):
     if (len(risk_moves) > 1):
         for lrm in risk_moves:
             if (lrm[0] == move):
-                if (lrm[1] >= 5.0):
+                if (lrm[1] >= 1.10):
                     retval = False
                 break
     print("DEBUG: Validated Move! :{}".format(move))
@@ -941,7 +970,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     #affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
     #print("DEBUG: Affinity Moves = {}".format(affinity_moves))
     
-    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, toward_heads, data, hungry)
+    preferred_moves_avoid_corners = modify_corners(preferred_moves, data)
+    print("DEBUG: Preferred Moves avoiding corners: {}".format(preferred_moves_avoid_corners))
+
+    preferred_moves_modified = modify_preferred_moves(preferred_moves, toward_heads, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
 
     tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
@@ -964,6 +996,16 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             direction = preferred_direction
             break
 
+    # avoid corners
+    preferred_direction = None
+    if (direction == None):
+        for pd in get_common_elements(extract_1(risk_moves), preferred_moves_avoid_corners):
+            preferred_direction = pd
+            print("DEBUG: Preferred direction avoid corners = {}".format(preferred_direction))
+            if (validate_move(preferred_direction, risk_moves, ff_moves, my_size, m, my_head["x"], my_head["y"], my_tail, data) == True):
+                direction = preferred_direction
+                break
+
     # preferred direction
     preferred_direction = None
     if (direction == None):
@@ -979,8 +1021,12 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             preferred_direction = pd
             print("DEBUG: Preferred direction = {}".format(preferred_direction))
             if (validate_move(preferred_direction, risk_moves, ff_moves, my_size, m, my_head["x"], my_head["y"], my_tail, data) == True):
-                direction = preferred_direction
-                break
+                if (preferred_direction not in toward_heads):
+                    print("DEBUG: Preferred direction OK")
+                    direction = preferred_direction
+                    break
+                else:
+                    print("DEBUG: Preferred direction NOT OK")  
 
     if (direction == None):
         for pm in possible_moves:
@@ -1007,15 +1053,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     # we are running out of options - get the first "possible" move from the unadulterated list
     if (direction == None):
         print("DEBUG: Last Ditch Possible Moves={}".format(last_ditch_possible_moves))
-        for ldm in last_ditch_possible_moves:
-            if (clear_path_to_my_tail(m, my_head["x"], my_head["y"], my_tail)):
-                direction = ldm
-                print("DEBUG: No options left - choose clear path to tail: {}".format(direction))
-                break
-            if (check_ff_size(ldm, ff_moves, my_size) == True):
-                direction = ldm
-                print("DEBUG: No options left - choose floodfill size: {}".format(direction))
-                break
+        for ldm in get_common_elements(extract_1(ff_moves), last_ditch_possible_moves):
+            direction = ldm
+            break
+        print("DEBUG: Last Ditch Move with highest size: {}".format(direction))
+                
     
     if (direction == None):
         print("DEBUG: Last Ditch Possible Moves={}".format(last_ditch_possible_moves))
