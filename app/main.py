@@ -822,10 +822,10 @@ def scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data):
 def extract_1(lst): 
     return [item[0] for item in lst] 
 
-def snake_head_test(data, a, b):
+def snake_head_test(data, x, y):
     retval = False
     snake_heads = get_snake_array(0, data)
-    test = (a, b)
+    test = (x, y)
     if (test in snake_heads):
         retval = True
     return retval
@@ -837,32 +837,48 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
     width = data["board"]["width"]
     if ("left" in possible_moves):
         if (my_head["y"] == 1):
-            if (snake_head_test(data, my_head["x"] + 1,  my_head["y"] - 1)):
-                preferred_moves_modified.append("left")   
+            for c in range(my_head["x"] + 1, width - 1):
+                if (snake_head_test(data, c,  my_head["y"] - 1)):
+                    if ("left" not in preferred_moves_modified):
+                        preferred_moves_modified.append("left")   
         if (my_head["y"] == (height - 2)):
-            if (snake_head_test(data, my_head["x"] + 1,  my_head["y"] + 1)):
-                preferred_moves_modified.append("left")   
+            for c in range(my_head["x"] + 1, width - 1):
+                if (snake_head_test(data, c,  my_head["y"] + 1)):
+                    if ("left" not in preferred_moves_modified):
+                        preferred_moves_modified.append("left")   
     if ("right" in possible_moves):
         if (my_head["y"] == 1):
-            if (snake_head_test(data, my_head["x"] - 1,  my_head["y"] - 1)):
-                preferred_moves_modified.append("right")   
+            for c in range(0, my_head["x"] - 1):
+                if (snake_head_test(data, c,  my_head["y"] - 1)):
+                    if ("right" not in preferred_moves_modified):
+                        preferred_moves_modified.append("right")   
         if (my_head["y"] == (height - 2)):
-            if (snake_head_test(data, my_head["x"] - 1,  my_head["y"] + 1)):
-                preferred_moves_modified.append("right")  
+            for c in range(0, my_head["x"] - 1):
+                if (snake_head_test(data, c,  my_head["y"] + 1)):
+                    if ("right" not in preferred_moves_modified):
+                        preferred_moves_modified.append("right")
     if ("up" in possible_moves):
         if (my_head["x"] == 1):
-            if (snake_head_test(data, my_head["y"] + 1,  my_head["x"] - 1)):
-                preferred_moves_modified.append("up")   
+            for c in range(my_head["y"] + 1, height - 1):
+                if (snake_head_test(data, my_head["x"] - 1, c)):
+                    if ("up" not in preferred_moves_modified):
+                        preferred_moves_modified.append("up")   
         if (my_head["x"] == (width - 2)):
-            if (snake_head_test(data, my_head["y"] + 1,  my_head["x"] + 1)):
-                preferred_moves_modified.append("up")   
+            for c in range(my_head["y"] + 1, height - 1):
+                if (snake_head_test(data, my_head["x"] + 1, c)):
+                    if ("up" not in preferred_moves_modified):
+                        preferred_moves_modified.append("up")   
     if ("down" in possible_moves):
         if (my_head["x"] == 1):
-            if (snake_head_test(data, my_head["y"] - 1,  my_head["x"] - 1)):
-                preferred_moves_modified.append("down")   
+            for c in range(0, my_head["y"] + 1):
+                if (snake_head_test(data, my_head["x"] - 1, c)):
+                    if ("down" not in preferred_moves_modified):
+                        preferred_moves_modified.append("down")   
         if (my_head["x"] == (width - 2)):
-            if (snake_head_test(data, my_head["y"] - 1,  my_head["x"] + 1)):
-                preferred_moves_modified.append("down") 
+            for c in range(0, my_head["y"] + 1):
+                if (snake_head_test(data, my_head["x"] + 1, c)):
+                    if ("down" not in preferred_moves_modified):
+                        preferred_moves_modified.append("down") 
         
     if (len(preferred_moves_modified) > 0):
         print("DEBUG: Attempting straight line kill of snake: {}".format(preferred_moves_modified))
