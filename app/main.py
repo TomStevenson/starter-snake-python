@@ -853,7 +853,7 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")   
         if (my_head["y"] == (height - 2)):
-            for c in range(0, my_head["x"] - 1):
+            for c in range(0, my_head["x"] + 1):
                 if (snake_head_test(data, c,  my_head["y"] + 1)):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")
