@@ -912,7 +912,8 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
-    threshold = 1.5
+    #1.5 best so far
+    threshold = 2.0
     
     #1.19
     direction = None
