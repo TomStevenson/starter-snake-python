@@ -912,9 +912,9 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
-    # threshold = 1.04
-    threshold = 1.29
-    #threshold = 1.23
+    threshold = 1.5
+    
+    #1.19
     direction = None
     
     my_head = data["you"]["body"][0]
