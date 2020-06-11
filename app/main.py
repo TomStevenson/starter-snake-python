@@ -672,12 +672,9 @@ def get_ff_size(direction, ff_moves):
 def check_ff_size(direction, ff_moves, my_size):
     new_direction = None
     ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size >= my_size + 1):
+    if (ff_size >= my_size):
         new_direction = direction
         print("DEBUG: choosing supplied direction: {}".format(new_direction))
-        if (ff_size < 2*my_size):
-            print("DEBUG: DID I GET IN TROUBLE?: {}".format(new_direction))
-            direction = None
     else:
         print("DEBUG: Floodfill size in supplied direction too small: {}".format(direction))
         new_direction = None
@@ -956,7 +953,8 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         least_risk_direction = lrm[0]
         print("DEBUG: least risk move: {}".format(least_risk_direction))
         # test to make sure my snake can fit via flood fill in that direction
-        least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
+        if (lrm[1] > 0.0):
+            least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
         
         if (least_risk_direction != None):
             # snake fits - we can stop looking
