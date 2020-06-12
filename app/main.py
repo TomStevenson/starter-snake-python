@@ -911,6 +911,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     # final decision
     #1.5 best so far
     threshold = 1.6
+    #threshold = 0.8
     
     #1.19
     direction = None
@@ -937,9 +938,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     # preferred direction
     preferred_direction = None
-    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
-    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
-    preferred_direction = get_first_common_element(preferred_moves_modified, away_from_heads)
+    #away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
+    #print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
+    #preferred_direction = get_first_common_element(preferred_moves_modified, away_from_heads)
+    preferred_direction = get_first_common_element(preferred_moves_modified, extract_1(risk_moves))
     if (preferred_direction == None):
         for pm in preferred_moves_modified:
             preferred_direction = pm
