@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#c00000"
+    color = "#ff0000"
 
     return start_response(color)
 
@@ -939,10 +939,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     # preferred direction
     preferred_direction = None
-    #away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
-    #print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
-    #preferred_direction = get_first_common_element(preferred_moves_modified, away_from_heads)
-    preferred_direction = get_first_common_element(preferred_moves_modified, extract_1(risk_moves))
+    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
+    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
+    preferred_direction = get_first_common_element(preferred_moves_modified, away_from_heads)
+    print("DEBUG: Preferred direction away from heads = {}".format(preferred_direction))
     if (preferred_direction == None):
         for pm in preferred_moves_modified:
             preferred_direction = pm
@@ -958,6 +958,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         # test to make sure my snake can fit via flood fill in that direction
         if (lrm[1] > 0.0):
             least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
+        else:
+            print("DEBUG: least risk move has 0 risk: {}".format(least_risk_direction))
+            break
         
         if (least_risk_direction != None):
             # snake fits - we can stop looking
