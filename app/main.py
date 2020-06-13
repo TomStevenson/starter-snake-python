@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#ff0000"
+    color = "#c00000"
 
     return start_response(color)
 
@@ -454,7 +454,7 @@ def edge_check(move, width, height, data):
 
 def move_to_edge(move, width, height, data):
     retval = 0
-    factor = 0.2
+    factor = 0.5
     my_head = data["you"]["body"][0]
     if (move == "left"):
         if ((my_head["x"] - 1) == 0):
@@ -543,28 +543,28 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails)
             test = (x, y)
             if ((x <= (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    left += 5
+                    left += 10
                 elif (test in snake_tails):
                     left += 0
                 else:
                     left += 1
             if ((y > (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    down += 5
+                    down += 10
                 elif (test in snake_tails):
                     down += 0
                 else:
                     down += 1
             if ((y <= (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    up += 5
+                    up += 10
                 elif (test in snake_tails):
                     up += 0
                 else:
                     up += 1
             if ((x > (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
-                    right += 5
+                    right += 10
                 elif (test in snake_tails):
                     right += 0
                 else:
@@ -910,7 +910,8 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
     #1.5 best so far
-    threshold = 1.6
+    #threshold = 1.6
+    threshold = 2.0
     #threshold = 0.8
     
     #1.19
