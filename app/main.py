@@ -991,8 +991,8 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 direction = domt
                 print("DEBUG: TOM2 We have a clear path to tail: {}".format(direction))
                 break
-        else:
-            print("DEBUG: TOM2 NO clear path to tail: {}".format(direction))
+            else:
+                print("DEBUG: TOM2 NO clear path to tail: {}".format(direction))
 
     # obtain the lowest risk score of the preferred move options
     lowest_risk_score = -1
