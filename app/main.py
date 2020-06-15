@@ -1053,23 +1053,13 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     # if direction has not yet been set, take the highest empty flood fill option
     if (direction == None):
-        for ffm in ff_moves:
-            direction = check_ff_size(ffm[0], ff_moves, my_size)
-            if (direction == None):
-                direction = check_ff_size(ffm[0], ff_moves_no_tails, my_size)
-            if (direction != None):
-                print("DEBUG: selecting lowest ff = {}".format(direction))
-                break
-    
-    # almost last ditch - move to the area with best chance of survival
-    if (direction == None):
-        for ffm in ff_moves_no_tails:
-            direction = ffm[0]
-            print("DEBUG: Picking direction with best survival chance = {}".format(direction))
+        ce = get_common_elements(extract_1(risk_moves), possible_moves)
+        for e in ce:
+            print("DEBUG: selecting lowest risk possible option = {}".format(direction))
+            direction = e
             break
-
+    
     # we are running out of options - get the first "possible" move from the unadulterated list
-
     if (direction == None):
         print("DEBUG: Last Ditch Possible Moves={}".format(last_ditch_possible_moves))
         for ldm in last_ditch_possible_moves:
