@@ -363,7 +363,7 @@ def edge_check(move, width, height, data):
 
     if (move == "up"):
         if (my_head["x"] == 0):
-            for x in range(1, 3):
+            for x in range(0, 3):
                 for y in range(0, my_head["y"]):
                     test_point = (x, y)
                     if (test_point in snake_heads):
@@ -372,7 +372,7 @@ def edge_check(move, width, height, data):
                         break
         
         if (my_head["x"] == (width - 1)):
-            for x in range(width - 4, width - 2):
+            for x in range(width - 4, width - 1):
                 for y in range(0, my_head["y"]):
                     test_point = (x, y)
                     if (test_point in snake_heads):
@@ -382,7 +382,7 @@ def edge_check(move, width, height, data):
     
     if (move == "down"):
         if (my_head["x"] == 0):
-            for x in range(1, 3):
+            for x in range(0, 3):
                 for y in range(my_head["y"], height - 1):
                     test_point = (x, y)
                     if (test_point in snake_heads):
@@ -391,7 +391,7 @@ def edge_check(move, width, height, data):
                         break
         
         if (my_head["x"] == (width - 1)):
-            for x in range(width - 4, width - 2):
+            for x in range(width - 4, width - 1):
                 for y in range(my_head["y"], height - 1):
                     test_point = (x, y)
                     if (test_point in snake_heads):
@@ -402,7 +402,7 @@ def edge_check(move, width, height, data):
     if (move == "left"):
         if (my_head["y"] == 0):
             for x in range(0, my_head["x"]):
-                for y in range(1, 3):
+                for y in range(0, 3):
                     test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
@@ -411,7 +411,7 @@ def edge_check(move, width, height, data):
 
         if (my_head["y"] == (height - 1)):
             for x in range(0, my_head["x"]):
-                for y in range(height - 4, height - 2):
+                for y in range(height - 4, height - 1):
                     test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
@@ -421,7 +421,7 @@ def edge_check(move, width, height, data):
     if (move == "right"):
         if (my_head["y"] == 0):
             for x in range(my_head["x"], width - 1):
-                for y in range(1, 3):
+                for y in range(0, 3):
                     test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
@@ -430,7 +430,7 @@ def edge_check(move, width, height, data):
         
         if (my_head["y"] == (height - 1)):
             for x in range(my_head["x"], width - 1):
-                for y in range(height - 4, height - 2):
+                for y in range(height - 4, height - 1):
                     test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
