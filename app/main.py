@@ -357,93 +357,81 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
 
 def edge_check(move, width, height, data):
     retval = 0
-    factor = 5
+    factor = 15
     snake_heads = get_snake_array(0, data)
     my_head = data["you"]["body"][0]
 
     if (move == "up"):
-        reference = 0
         if (my_head["x"] == 0):
-            reference = 1
-            for y in range(my_head["y"] - 4, my_head["y"] + 1):
-                if (y >= 0):
-                    test_point = (reference, y)
+            for x in range(1, 3):
+                for y in range(0, my_head["y"]):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
                         break
         
-        reference = width - 2
         if (my_head["x"] == (width - 1)):
-            for y in range(my_head["y"] - 4, my_head["y"] + 1):
-                if (y >= 0):
-                    test_point = (reference, y)
+            for x in range(width - 4, width - 2):
+                for y in range(0, my_head["y"]):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
                         break
     
     if (move == "down"):
-        reference = 0
         if (my_head["x"] == 0):
-            reference = 1
-            for y in range(my_head["y"] - 1, my_head["y"] + 4):
-                if (y <= height - 1):
-                    test_point = (reference, y)
+            for x in range(1, 3):
+                for y in range(my_head["y"], height - 1):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
                         break
         
-        reference = width - 2
         if (my_head["x"] == (width - 1)):
-            for y in range(my_head["y"] - 1, my_head["y"] + 4):
-                if (y <= height - 1):
-                    test_point = (reference, y)
+            for x in range(width - 4, width - 2):
+                for y in range(my_head["y"], height - 1):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
                         break
     
     if (move == "left"):
-        reference = 0
         if (my_head["y"] == 0):
-            reference = 1
-            for x in range(my_head["x"] - 4, my_head["x"] + 1):
-                if (x >= 0):
-                    test_point = (x, reference)
+            for x in range(0, my_head["x"]):
+                for y in range(1, 3):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
                         break
-        
-        reference = height - 2
+
         if (my_head["y"] == (height - 1)):
-            for x in range(my_head["x"] - 4, my_head["x"] + 1):
-                if (x <= width - 1):
-                    test_point = (x, reference)
+            for x in range(0, my_head["x"]):
+                for y in range(height - 4, height - 2):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
                         break
     
     if (move == "right"):
-        reference = 0
         if (my_head["y"] == 0):
-            reference = 1
-            for x in range(my_head["x"] - 1, my_head["x"] + 4):
-                if (x >= 0):
-                    test_point = (x, reference)
+            for x in range(my_head["x"], width - 1):
+                for y in range(1, 3):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
                         break
         
-        reference = height - 2
         if (my_head["y"] == (height - 1)):
-            for x in range(my_head["x"] - 1, my_head["x"] + 4):
-                if (x <= width - 1):
-                    test_point = (x, reference)
+            for x in range(my_head["x"], width - 1):
+                for y in range(height - 4, height - 2):
+                    test_point = (x, y)
                     if (test_point in snake_heads):
                         retval = factor
                         print(" DEBUG: FAILED EDGE CHECK !  BAD DIRECTION !: {}".format(move))
@@ -628,9 +616,7 @@ def clear_path_to_my_tail(matrix, x, y, my_tail):
     retval = False
     if matrix[x][y] == 'e':  
         test = (x, y)
-        print(test)
         tail_point = (my_tail["x"], my_tail["y"])
-        print(tail_point)
         if test == tail_point:
             return True
         matrix[x][y] = ' '
