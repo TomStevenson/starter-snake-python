@@ -345,9 +345,9 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                     temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                     if (temp == test_coord):
                         otherSnakeSize = len(snake["body"])
-                        if (len(me) < otherSnakeSize):
-                            risk += 5
-                            print(" DEBUG: +5 to risk - bigger snake head !")
+                        #if (len(me) < otherSnakeSize):
+                        risk += 5
+                        print(" DEBUG: +5 to risk - snake head !")
     if (risk > 0):
         risk_factor = risk / fake_area
     else:
