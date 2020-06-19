@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#ff0000"
+    color = "#3dcd58"
 
     return start_response(color)
 
@@ -345,9 +345,9 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                     temp = (snake["body"][0]["x"], snake["body"][0]["y"])
                     if (temp == test_coord):
                         otherSnakeSize = len(snake["body"])
-                        #if (len(me) < otherSnakeSize):
-                        risk += 5
-                        print(" DEBUG: +5 to risk - snake head !")
+                        if (len(me) < otherSnakeSize):
+                            risk += 5
+                            print(" DEBUG: +5 to risk - snake head !")
     if (risk > 0):
         risk_factor = risk / fake_area
     else:
@@ -823,7 +823,7 @@ def snake_head_test(data, x, y):
         retval = True
     return retval
 
-def modify_preferred_moves(preferred_moves, possible_moves, data, hungry, matrix):
+def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
     preferred_moves_modified = []
     my_head = data["you"]["body"][0]
     height = data["board"]["height"]
@@ -879,36 +879,24 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry, matrix
 
     for pm in preferred_moves:
         if pm == "up":
-            if (my_head["y"] != 0):
-                if (clear_path_to_a_tail(matrix, my_head["x"], my_head["y"], data, pm) == True):
-                    if (((my_head["y"] - 1) != 0) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
-                        if ("up" not in preferred_moves_modified):
-                            print("DEBUG: Preferred has straight line to a tail: up")
-                            preferred_moves_modified.append("up")
+            if (((my_head["y"] - 1) != 0) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
+                if ("up" not in preferred_moves_modified):
+                    preferred_moves_modified.append("up")
                             
         if pm == "down":
-            if (my_head["y"] != height - 1):
-                if (clear_path_to_a_tail(matrix, my_head["x"], my_head["y"], data, pm) == True):
-                    if (((my_head["y"] + 1) != (height - 1)) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
-                        if ("down" not in preferred_moves_modified):
-                            print("DEBUG: Preferred has straight line to a tail: down")
-                            preferred_moves_modified.append("down")
+            if (((my_head["y"] + 1) != (height - 1)) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
+                if ("down" not in preferred_moves_modified):
+                    preferred_moves_modified.append("down")
 
         if pm == "left":
-            if (my_head["x"] != 0):
-                if (clear_path_to_a_tail(matrix, my_head["x"], my_head["y"], data, pm) == True):
-                    if (((my_head["x"] - 1) != 0) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
-                        if ("left" not in preferred_moves_modified):
-                            print("DEBUG: Preferred has straight line to a tail: left")
-                            preferred_moves_modified.append("left")
+            if (((my_head["x"] - 1) != 0) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
+                if ("left" not in preferred_moves_modified):
+                    preferred_moves_modified.append("left")
 
         if pm == "right":
-            if (my_head["x"] != width - 1):
-                if (clear_path_to_a_tail(matrix, my_head["x"], my_head["y"], data, pm) == True):
-                    if (((my_head["x"] - 1) != (width - 1)) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
-                        if ("right" not in preferred_moves_modified):
-                            print("DEBUG: Preferred has straight line to a tail: right")
-                            preferred_moves_modified.append("right")
+            if (((my_head["x"] - 1) != (width - 1)) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
+                if ("right" not in preferred_moves_modified):
+                    preferred_moves_modified.append("right")
 
     return preferred_moves_modified
 
@@ -935,8 +923,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     height = data["board"]["height"]
     width = data["board"]["width"]
     
-    snake_coords = populate_snake_coords(data, False)
-    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, data, hungry, m)
+    preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
 
     tail_moves = is_move_my_tail(my_head, data["board"]["snakes"], my_size)
@@ -1019,6 +1006,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 lowest_risk_score = rm[1]
                 break
     else:
+        snake_coords = populate_snake_coords(data, False)
         matrix = build_matrix(width, height, snake_coords, data)
         affinity_moves = scan_empty_quadrant(matrix, width, height, possible_moves, my_head, data)
         for am in affinity_moves:
