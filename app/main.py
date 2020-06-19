@@ -442,7 +442,7 @@ def edge_check(move, width, height, data):
 
 def move_to_edge(move, width, height, data):
     retval = 0
-    factor = 0.5
+    factor = 0.2
     my_head = data["you"]["body"][0]
     if (move == "left"):
         if ((my_head["x"] - 1) == 0):
@@ -819,47 +819,71 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
     height = data["board"]["height"]
     width = data["board"]["width"]
     if ("left" in possible_moves):
-        if (my_head["y"] == 1):
+        if (my_head["y"] == 1 or my_head["y"] == 2):
             for c in range(my_head["x"] + 1, width - 1):
                 if (snake_head_test(data, c,  my_head["y"] - 1)):
                     if ("left" not in preferred_moves_modified):
-                        preferred_moves_modified.append("left")   
-        if (my_head["y"] == (height - 2)):
+                        preferred_moves_modified.append("left")
+                if (snake_head_test(data, c,  my_head["y"] - 2)):
+                    if ("left" not in preferred_moves_modified):
+                        preferred_moves_modified.append("left")
+        if (my_head["y"] == (height - 2) or my_head["y"] == (height - 3)):
             for c in range(my_head["x"] + 1, width - 1):
                 if (snake_head_test(data, c,  my_head["y"] + 1)):
                     if ("left" not in preferred_moves_modified):
                         preferred_moves_modified.append("left")   
+                if (snake_head_test(data, c,  my_head["y"] + 2)):
+                    if ("left" not in preferred_moves_modified):
+                        preferred_moves_modified.append("left")   
     if ("right" in possible_moves):
-        if (my_head["y"] == 1):
+        if (my_head["y"] == 1 or my_head["y"] == 2):
             for c in range(0, my_head["x"] - 1):
                 if (snake_head_test(data, c,  my_head["y"] - 1)):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")   
-        if (my_head["y"] == (height - 2)):
+                if (snake_head_test(data, c,  my_head["y"] - 2)):
+                    if ("right" not in preferred_moves_modified):
+                        preferred_moves_modified.append("right")   
+        if (my_head["y"] == (height - 2) or my_head["y"] == (height - 3)):
             for c in range(0, my_head["x"] + 1):
                 if (snake_head_test(data, c,  my_head["y"] + 1)):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")
+                if (snake_head_test(data, c,  my_head["y"] + 2)):
+                    if ("right" not in preferred_moves_modified):
+                        preferred_moves_modified.append("right")
     if ("up" in possible_moves):
-        if (my_head["x"] == 1):
+        if (my_head["x"] == 1 or my_head["x"] == 2):
             for c in range(my_head["y"] + 1, height - 1):
                 if (snake_head_test(data, my_head["x"] - 1, c)):
                     if ("up" not in preferred_moves_modified):
                         preferred_moves_modified.append("up")   
-        if (my_head["x"] == (width - 2)):
+                if (snake_head_test(data, my_head["x"] - 2, c)):
+                    if ("up" not in preferred_moves_modified):
+                        preferred_moves_modified.append("up")   
+        if (my_head["x"] == (width - 2) or my_head["x"] == (width - 3)):
             for c in range(my_head["y"] + 1, height - 1):
                 if (snake_head_test(data, my_head["x"] + 1, c)):
+                    if ("up" not in preferred_moves_modified):
+                        preferred_moves_modified.append("up")
+                if (snake_head_test(data, my_head["x"] + 2, c)):
                     if ("up" not in preferred_moves_modified):
                         preferred_moves_modified.append("up")   
     if ("down" in possible_moves):
-        if (my_head["x"] == 1):
+        if (my_head["x"] == 1 or my_head["x"] == 2):
             for c in range(0, my_head["y"] + 1):
                 if (snake_head_test(data, my_head["x"] - 1, c)):
                     if ("down" not in preferred_moves_modified):
-                        preferred_moves_modified.append("down")   
-        if (my_head["x"] == (width - 2)):
+                        preferred_moves_modified.append("down")
+                if (snake_head_test(data, my_head["x"] - 2, c)):
+                    if ("down" not in preferred_moves_modified):
+                        preferred_moves_modified.append("down")
+        if (my_head["x"] == (width - 2) or my_head["x"] == (width - 3)):
             for c in range(0, my_head["y"] + 1):
                 if (snake_head_test(data, my_head["x"] + 1, c)):
+                    if ("down" not in preferred_moves_modified):
+                        preferred_moves_modified.append("down")
+                if (snake_head_test(data, my_head["x"] + 2, c)):
                     if ("down" not in preferred_moves_modified):
                         preferred_moves_modified.append("down") 
         
@@ -896,9 +920,9 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
     #1.5 best so far
-    #threshold = 1.6
-    threshold = 2.0
-    #threshold = 0.8
+    #threshold = 1.5
+    threshold = 1.17
+    
     
     #1.19
     direction = None
