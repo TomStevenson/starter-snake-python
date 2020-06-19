@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#ff0000"
+    color = "#3dcd58"
 
     return start_response(color)
 
@@ -1046,6 +1046,12 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
             if (direction != None):
                 print("DEBUG: selecting lowest ff = {}".format(direction))
                 break
+
+    if (direction == None):
+        for tm in tail_moves:
+            direction = tm
+            print("DEBUG: selecting tail move = {}".format(direction))
+            break
     
     # almost last ditch - move to the area with best chance of survival
     if (direction == None):
