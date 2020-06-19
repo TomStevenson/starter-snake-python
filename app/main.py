@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#3dcd58"
+    color = "#ff0000"
 
     return start_response(color)
 
@@ -347,7 +347,7 @@ def check_risk_area(a1, a2, b1, b2, snake_coords, me, snakes, mode, width, heigh
                         otherSnakeSize = len(snake["body"])
                         if (len(me) < otherSnakeSize):
                             risk += 5
-                            print(" DEBUG: +5 to risk - snake head !")
+                            print(" DEBUG: +5 to risk - bigger snake head !")
     if (risk > 0):
         risk_factor = risk / fake_area
     else:
@@ -616,7 +616,8 @@ def clear_path_to_my_tail(matrix, x, y, my_tail):
     retval = False
     if matrix[x][y] == 'e':  
         test = (x, y)
-        if test == my_tail:
+        tail_point = (my_tail["x"], my_tail["y"])
+        if test == tail_point:
             return True
         matrix[x][y] = ' '
         if x > 0:
@@ -677,17 +678,6 @@ def did_snake_not_grow(snake):
         else:
             print("DEBUG: Snake ate last round so grew !")
             retval = False
-    return retval
-
-#TO DO
-def clear_path_to_a_tail(matrix, x, y, data, direction):
-    retval = False
-    snake_tails = get_snake_array(-1, data)
-    for st in snake_tails:
-        retval = check_for_clear_path(matrix, direction, x, y, st)
-        #retval = clear_path_to_my_tail(matrix, x, y, st)
-        if (retval == True):
-            break
     return retval
 
 def is_move_my_tail(my_head, snakes, my_size):
@@ -882,22 +872,18 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
             if (((my_head["y"] - 1) != 0) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("up" not in preferred_moves_modified):
                     preferred_moves_modified.append("up")
-                            
         if pm == "down":
             if (((my_head["y"] + 1) != (height - 1)) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("down" not in preferred_moves_modified):
                     preferred_moves_modified.append("down")
-
         if pm == "left":
             if (((my_head["x"] - 1) != 0) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
                 if ("left" not in preferred_moves_modified):
                     preferred_moves_modified.append("left")
-
         if pm == "right":
             if (((my_head["x"] - 1) != (width - 1)) or (my_head["y"] != 0) or (my_head["y"] != (height - 1)) or (hungry == True)):
                 if ("right" not in preferred_moves_modified):
                     preferred_moves_modified.append("right")
-
     return preferred_moves_modified
 
 # make_decision: logic to pick the desired move of the snake
@@ -975,10 +961,6 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 direction = least_risk_direction
                 break
             else:
-                if (least_risk_direction in tail_moves):
-                    direction = least_risk_direction
-                    print("DEBUG: We have a tail move: {}".format(direction))
-                    break
                 cp = check_for_clear_path(m, least_risk_direction, my_head["x"], my_head["y"], my_tail)
                 if (cp == True):
                     direction = least_risk_direction
