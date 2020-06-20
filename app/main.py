@@ -442,7 +442,7 @@ def edge_check(move, width, height, data):
 
 def move_to_edge(move, width, height, data):
     retval = 0
-    factor = 0.2
+    factor = 0.5
     my_head = data["you"]["body"][0]
     if (move == "left"):
         if ((my_head["x"] - 1) == 0):
@@ -896,8 +896,8 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
     #1.5 best so far
-    #threshold = 1.5
-    threshold = 1.17
+    threshold = 1.9
+    #threshold = 1.17
     
     
     #1.19
