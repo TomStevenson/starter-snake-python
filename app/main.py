@@ -896,7 +896,7 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
     #1.5 best so far
-    threshold = 1.9
+    threshold = 2.1
     #threshold = 1.17
     
     
