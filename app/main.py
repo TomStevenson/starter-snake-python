@@ -673,9 +673,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     for op in ordered_preferred_refined:
         temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data)
         if (temp_direction != None):
-            direction = temp_direction
-            print("DEBUG: Preferred direction GOOD = {}".format(temp_direction))
-            break
+            risk_score = get_risk_score(temp_direction, risk_moves)
+            if (risk_score <= 2.0):
+                direction = temp_direction
+                print("DEBUG: Preferred direction GOOD = {}".format(temp_direction))
+                break
 
     if (direction == None):
         for rm in risk_moves:
@@ -696,7 +698,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     if (direction == None):
         for domt in last_ditch_possible_moves:
             direction = domt
-            print("DEBUG: Last ditch direction = {}".format(temp_direction))
+            print("DEBUG: Last ditch direction = {}".format(direction))
             break
     
     # in trouble now - pick a random direction
