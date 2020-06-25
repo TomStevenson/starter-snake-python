@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#AA0000"
+    color = "#CC0000"
 
     return start_response(color)
 
@@ -74,7 +74,7 @@ def is_snake_longer_than_me(data, snake_head):
     longer_snake = False
     for snake in data["board"]["snakes"]:
         if (snake_head == snake["body"][0]):
-            if (snake != data["you"] and (len(snake["body"]) >= (len(data["you"]["body"]) - 1))):
+            if (snake != data["you"] and (len(snake["body"]) > (len(data["you"]["body"]) - 1))):
                 print("DEBUG: Snake is longer than me !")
                 longer_snake = True
                 break
