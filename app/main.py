@@ -582,6 +582,26 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
                     preferred_moves_modified.append("right")
     return preferred_moves_modified
 
+def which_directions_are_away_from_snake_heads(my_head, snake_heads, data):
+    retval = []
+    for sh in snake_heads:
+        if (is_snake_longer_than_me(data, sh)):
+            x = my_head["x"] - sh[0]
+            if (x > 0):
+                if ("right" not in snake_heads):
+                    retval.append("right")
+            if (x < 0):
+                if ("left" not in snake_heads):
+                    retval.append("left")
+            y = my_head["y"] - sh[1]
+            if (y > 0):
+                if ("down" not in snake_heads):
+                    retval.append("down")
+            if (y < 0):
+                if ("up" not in snake_heads):
+                    retval.append("up")
+    return retval
+
 def get_risk_score(move, risk_moves):
     risk_score = 999999
     for lrm in risk_moves:
@@ -647,7 +667,10 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     # preferred direction
     ordered_preferred = get_common_elements(extract_1(risk_moves), preferred_moves_modified)
-    for op in ordered_preferred:
+    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
+    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
+    ordered_preferred_refined = get_common_elements(ordered_preferred, away_from_heads)
+    for op in ordered_preferred_refined:
         temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data)
         if (temp_direction != None):
             direction = temp_direction
