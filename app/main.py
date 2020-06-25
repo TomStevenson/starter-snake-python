@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#CC0000"
+    color = "#AA0000"
 
     return start_response(color)
 
@@ -60,17 +60,15 @@ def get_food_list(snake_head, data):
     l.append(closest)
     return l
 
-# Fetches first element from x that is common for both lists
-# or return None if no such an element is found.  
-def get_first_common_element(x,y):
+def get_common_elements(x,y):
+    retval = []
+    if (len(x) == 0):
+        for j in y:
+            retval.append(j)
     for i in x:
-        if i in y:
-            return i
-    # In case no common element found, you could trigger Exception
-    # Or if no common element is _valid_ and common state of your application
-    # you could simply return None and test return value
-    # raise Exception('No common element found')
-    return None
+        if ((i in y) or (len(y) == 0)):
+            retval.append(i)
+    return retval
 
 def is_snake_longer_than_me(data, snake_head):
     longer_snake = False
@@ -81,30 +79,6 @@ def is_snake_longer_than_me(data, snake_head):
                 longer_snake = True
                 break
     return longer_snake
-
-def which_directions_are_away_from_snake_heads(my_head, snake_heads, data):
-    retval = []
-    for sh in snake_heads:
-        if (is_snake_longer_than_me(data, sh)):
-            x = my_head["x"] - sh[0]
-            if (x > 0):
-                if ("right" not in snake_heads):
-                    if ("right" not in retval):
-                        retval.append("right")
-            if (x < 0):
-                if ("left" not in snake_heads):
-                    if ("left" not in retval):
-                        retval.append("left")
-            y = my_head["y"] - sh[1]
-            if (y > 0):
-                if ("down" not in snake_heads):
-                    if ("down" not in retval):
-                        retval.append("down")
-            if (y < 0):
-                if ("up" not in snake_heads):
-                    if ("up" not in retval):
-                        retval.append("up")
-    return retval
 
 # populate_bad_coords: define perimeter coordinates just outside the board
 # width: width of the board
@@ -242,7 +216,7 @@ def test_for_snake_head(direction, coords_to_test, snake_heads, data):
                     other_snake_size = len(snake["body"])
                     if (my_size <= other_snake_size):
                         heads_to_avoid.append(direction)
-                        print("DEBUG: Avoid snake head!")
+                        print("DEBUG: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Avoid snake head!")
     return heads_to_avoid
 
 # get_snake_heads_to_avoid: checks for other snake headsin all directions
@@ -289,7 +263,7 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
 
 def move_to_edge(move, width, height, data):
     retval = 0
-    factor = 0.5
+    factor = 1
     my_head = data["you"]["body"][0]
     if (move == "left"):
         if ((my_head["x"] - 1) == 0):
@@ -306,19 +280,17 @@ def move_to_edge(move, width, height, data):
     print(" DEBUG: Move to Edge: {}".format(retval))
     return retval
 
-# check_risky_business: builds a tuple of move direction and its associated risk score
-# a1, a2, b1, b2: x and y to and from coordinates to scan
+# check_risk: builds a tuple of move direction and its associated risk score
 # snake_coords: array of all snake coordinates
 # possible_moves: array of possible moves
 # data: json payload from game
 # width, height: dimensions of the board
 # returns: tuple of move direction and risk score
-def check_risky_business(move, a1, a2, b1, b2, snake_coords, possible_moves, data, width, height):
-    snakes = data["board"]["snakes"]
+def check_risk(move, snake_coords, possible_moves, data, width, height):
     tup = None
     if (move in possible_moves):
         print("DEBUG: Checking risk in direction: {}".format(move))
-        scan = scan_matrix(build_matrix(width, height, snake_coords, data), width, height, possible_moves, get_snake_array(0, data), get_snake_array(-1, data))
+        scan = scan_matrix(build_matrix(width, height, snake_coords, data), width, height, possible_moves, get_snake_array(0, data))
         mte = move_to_edge(move, width, height, data)
         sv = 0
         for s in scan:
@@ -344,7 +316,7 @@ def build_matrix(width, height, snake_coords, data):
                 matrix[x][y] = 'e'
     return matrix
 
-def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails):
+def scan_matrix(matrix, width, height, possible_moves, snake_heads):
     left = 0
     right = 0
     up = 0
@@ -355,29 +327,21 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads, snake_tails)
             if ((x <= (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     left += 20
-                elif (test in snake_tails):
-                    left += 0
                 else:
                     left += 1
             if ((y > (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     down += 20
-                elif (test in snake_tails):
-                    down += 0
                 else:
                     down += 1
             if ((y <= (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     up += 20
-                elif (test in snake_tails):
-                    up += 0
                 else:
                     up += 1
             if ((x > (width / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     right += 20
-                elif (test in snake_tails):
-                    right += 0
                 else:
                     right += 1
     
@@ -423,7 +387,7 @@ def build_floodfill_move(width, height, snake_coords, data, x, y, test1, test2):
         ff = floodfill_algorithm(build_matrix(width, height, snake_coords, data), x, y, 0)
     return ff
 
-def check_for_clear_path(matrix, direction, x, y, my_tail):
+def check_for_clear_path(matrix, direction, x, y, tails):
     x_factor = 0
     y_factor = 0
     if (direction == "left"):
@@ -434,31 +398,30 @@ def check_for_clear_path(matrix, direction, x, y, my_tail):
         y_factor = -1
     if (direction == "down"):
         y_factor = 1
-    retval = clear_path_to_my_tail(matrix, x + x_factor, y + y_factor, my_tail)
+    retval = clear_path_to_my_tail(matrix, x + x_factor, y + y_factor, tails)
     return retval
 
-def clear_path_to_my_tail(matrix, x, y, my_tail):
+def clear_path_to_my_tail(matrix, x, y, tails):
     retval = False
-    if matrix[x][y] == 'e':  
-        test = (x, y)
-        tail_point = (my_tail["x"], my_tail["y"])
-        if test == tail_point:
-            return True
+    if matrix[x][y] == 'e':
         matrix[x][y] = ' '
+        test = (x, y)
+        if test in tails:
+            return True
         if x > 0:
-            r = clear_path_to_my_tail(matrix, x - 1, y, my_tail)
+            r = clear_path_to_my_tail(matrix, x - 1, y, tails)
             if (r == True):
                 return True
         if x < len(matrix[y]) - 1:
-            r = clear_path_to_my_tail(matrix, x + 1, y, my_tail)
+            r = clear_path_to_my_tail(matrix, x + 1, y, tails)
             if (r == True):
                 return True
         if y > 0:
-            r = clear_path_to_my_tail(matrix, x, y - 1, my_tail)
+            r = clear_path_to_my_tail(matrix, x, y - 1, tails)
             if (r == True):
                 return True
         if y < len(matrix[x]) - 1:
-            r = clear_path_to_my_tail(matrix, x, y + 1, my_tail)
+            r = clear_path_to_my_tail(matrix, x, y + 1, tails)
             if (r == True):
                 return True
     return retval
@@ -483,11 +446,9 @@ def get_ff_size(direction, ff_moves):
 def check_ff_size(direction, ff_moves, my_size):
     new_direction = None
     ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size >= my_size):
+    if (ff_size >= my_size - 1):
         new_direction = direction
-        print("DEBUG: choosing supplied direction: {}".format(new_direction))
     else:
-        print("DEBUG: Floodfill size in supplied direction too small: {}".format(direction))
         new_direction = None
     return new_direction
 
@@ -498,10 +459,9 @@ def did_snake_not_grow(snake):
         tail = snake["body"][snake_length - 1]
         tail_minus = snake["body"][snake_length - 2]
         if (tail != tail_minus):
-            print("DEBUG: Snake DID NOT GROW")
             retval = True
         else:
-            print("DEBUG: Snake ate last round so grew !")
+            print("DEBUG: WARNING: Snake ate last round so grew !")
             retval = False
     return retval
 
@@ -622,6 +582,40 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
                     preferred_moves_modified.append("right")
     return preferred_moves_modified
 
+def get_risk_score(move, risk_moves):
+    risk_score = 999999
+    for lrm in risk_moves:
+        if (lrm[0] == move):
+            risk_score = lrm[1]
+            break
+    return risk_score
+
+def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, data):
+    good_direction = None
+    
+    my_head = data["you"]["body"][0]
+    my_size = len(data["you"]["body"])
+    tails = get_snake_array(-1, data)
+    risk_score = get_risk_score(move, risk_moves)
+    
+    if (risk_score > 0.0):
+        good_direction = check_ff_size(move, ff_moves, my_size)
+        if (good_direction == None):
+            good_direction = check_ff_size(move, ff_moves_no_tails, my_size)
+        if (good_direction == None):
+            print("DEBUG: validate_direction: floodfill size with and without tails NOT sufficient: {}".format(move))    
+            cp = check_for_clear_path(matrix, move, my_head["x"], my_head["y"], tails)
+            if (cp == True):
+                good_direction = move
+                print("DEBUG: validate_direction: found a clear path to a tail: {}".format(move))    
+            else:
+                print("DEBUG: validate_direction: no clear path to a tail: {}".format(move))
+    else:
+        print("DEBUG: validate_direction: risk score is zero: {}".format(move))
+        good_direction = move
+
+    return good_direction
+
 # make_decision: logic to pick the desired move of the snake
 # preferred_moves: array of the preffered directions to move to get to target
 # last_ditch_possible_moves: array of possible moves before they have been filtered to use as last resort
@@ -631,16 +625,11 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
 # returns: final direction to move
 def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, risk_moves, ff_moves, ff_moves_no_tails, my_size, data, m, snake_heads, snake_tails, hungry):
     # final decision
-
-    threshold = 1.8
-    #threshold = 0.85
     direction = None
-    
+
     my_head = data["you"]["body"][0]
     my_size = len(data["you"]["body"])
     my_tail = data["you"]["body"][my_size-1]
-    height = data["board"]["height"]
-    width = data["board"]["width"]
     
     preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
@@ -657,109 +646,34 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("DEBUG: Tail Moves!: {}".format(tail_moves))
 
     # preferred direction
-    preferred_direction = None
-    away_from_heads = which_directions_are_away_from_snake_heads(my_head, get_snake_array(0, data), data)
-    print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
-    preferred_direction = get_first_common_element(preferred_moves_modified, risk_moves)
-    print("DEBUG: Preferred direction away from heads = {}".format(preferred_direction))
-    if (preferred_direction == None):
-        for pm in preferred_moves_modified:
-            preferred_direction = pm
-            print("DEBUG: Preferred direction = {}".format(preferred_direction))
+    ordered_preferred = get_common_elements(extract_1(risk_moves), preferred_moves_modified)
+    for op in ordered_preferred:
+        temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data)
+        if (temp_direction != None):
+            direction = temp_direction
+            print("DEBUG: Preferred direction GOOD = {}".format(temp_direction))
             break
 
-    # least risk direction         
-    least_risk_direction = None
-    for lrm in risk_moves:
-        # get direction of lowest risk area score
-        least_risk_direction = lrm[0]
-        print("DEBUG: least risk move: {}".format(least_risk_direction))
-        # test to make sure my snake can fit via flood fill in that direction
-        if (lrm[1] > 0.0):
-            least_risk_direction = check_ff_size(least_risk_direction, ff_moves, my_size)
-        else:
-            print("DEBUG: least risk move has 0 risk: {}".format(least_risk_direction))
-            break
-        
-        if (least_risk_direction != None):
-            # snake fits - we can stop looking
-            print("DEBUG: snake fits - we can stop looking: {}".format(least_risk_direction))
-            direction = least_risk_direction
-            break
-        else:
-            least_risk_direction = check_ff_size(lrm[0], ff_moves_no_tails, my_size)
-            if (least_risk_direction != None):
-                # snake fits - we can stop looking
-                print("DEBUG: snake fits when tails ignore - we can stop looking: {}".format(least_risk_direction))
-                direction = least_risk_direction
+    if (direction == None):
+        for rm in risk_moves:
+            temp_direction = validate_direction(rm[0], m, risk_moves, ff_moves, ff_moves_no_tails, data)
+            if (temp_direction != None):
+                direction = temp_direction
+                print("DEBUG: Least risk direction GOOD = {}".format(temp_direction))
                 break
             else:
-                cp = check_for_clear_path(m, least_risk_direction, my_head["x"], my_head["y"], my_tail)
-                if (cp == True):
-                    direction = least_risk_direction
-                    print("DEBUG: TOM We have a least risk move clear path to tail: {}".format(direction))
-                    break
-                else:
-                     print("DEBUG: TOM NO clear path to tail: {}".format(direction))
-    
-    # obtain the lowest risk score of the preferred move options
-    lowest_risk_score = -1
-    if (preferred_direction != None):        
-        for rm in risk_moves:
-            if (rm[0] == preferred_direction):
-                lowest_risk_score = rm[1]
-                break
-        
-    # if the risk score is acceptably low, check that the flood fill is compatible
-    if ((lowest_risk_score != -1) and (lowest_risk_score <= threshold)):
-        print("DEBUG: risk score is acceptably low to choose preferred direction: {}".format(lowest_risk_score))
-        if (preferred_direction != None):
-            temp_direction = check_ff_size(preferred_direction, ff_moves, my_size)
-            if (temp_direction == preferred_direction):
-                direction = temp_direction
-        if ((direction == None) and (preferred_direction != None)):
-            direction = check_ff_size(preferred_direction, ff_moves_no_tails, my_size)
+                print("DEBUG: Least risk direction NOT GOOD = {}".format(temp_direction))
 
+    if (direction == None):
+        for rm in risk_moves:
+            print("DEBUG: Simply taking lowest risk = {}".format(temp_direction))
+            direction = rm[0]
+            break
+    
     if (direction == None):
         for domt in last_ditch_possible_moves:
-            cp = check_for_clear_path(m, domt, my_head["x"], my_head["y"], my_tail)
-            if (cp == True):
-                direction = domt
-                print("DEBUG: TOM2 We have a clear path to tail: {}".format(direction))
-                break
-            else:
-                print("DEBUG: TOM2 NO clear path to tail: {}".format(direction))
-    
-    # if direction has not yet been set, take the highest empty flood fill option
-    if (direction == None):
-        for ffm in ff_moves:
-            direction = check_ff_size(ffm[0], ff_moves, my_size)
-            if (direction == None):
-                direction = check_ff_size(ffm[0], ff_moves_no_tails, my_size)
-            if (direction != None):
-                print("DEBUG: selecting lowest ff = {}".format(direction))
-                break
-
-    if (direction == None):
-        for tm in tail_moves:
-            direction = tm
-            print("DEBUG: selecting tail move = {}".format(direction))
-            break
-    
-    # almost last ditch - move to the area with best chance of survival
-    if (direction == None):
-        for ffm in ff_moves_no_tails:
-            direction = ffm[0]
-            print("DEBUG: Picking direction with best survival chance = {}".format(direction))
-            break
-
-    # we are running out of options - get the first "possible" move from the unadulterated list
-
-    if (direction == None):
-        print("DEBUG: Last Ditch Possible Moves={}".format(last_ditch_possible_moves))
-        for ldm in last_ditch_possible_moves:
-            direction = ldm
-            print("DEBUG: No options left - choose last ditch possible move: {}".format(direction))
+            direction = domt
+            print("DEBUG: Last ditch direction = {}".format(temp_direction))
             break
     
     # in trouble now - pick a random direction
@@ -841,16 +755,16 @@ def move():
 
     # build array of directions sorted by risk level
     risk_moves = []
-    tup = check_risky_business("up", my_head["y"] - 3, my_head["y"], my_head["x"] - 2, my_head["x"] + 2, snake_coords, possible_moves, data, width, height)    
+    tup = check_risk("up", snake_coords, possible_moves, data, width, height)    
     if (tup):
         risk_moves.append(tup)
-    tup = check_risky_business("down", my_head["y"] + 1, my_head["y"] + 4, my_head["x"] - 2, my_head["x"] + 2, snake_coords, possible_moves, data, width, height)
+    tup = check_risk("down", snake_coords, possible_moves, data, width, height)
     if (tup):
         risk_moves.append(tup)
-    tup = check_risky_business("left", my_head["x"] - 4, my_head["x"] - 1, my_head["y"] - 2, my_head["y"] + 2, snake_coords, possible_moves, data, width, height)    
+    tup = check_risk("left", snake_coords, possible_moves, data, width, height)    
     if (tup):
         risk_moves.append(tup)
-    tup = check_risky_business("right", my_head["x"] + 1, my_head["x"] + 4, my_head["y"]-2, my_head["y"]+2, snake_coords, possible_moves, data, width, height)
+    tup = check_risk("right", snake_coords, possible_moves, data, width, height)
     if (tup):
         risk_moves.append(tup)
     if len(risk_moves) > 0:
