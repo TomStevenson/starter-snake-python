@@ -41,7 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#CC0000"
+    color = "#3dcd58"
 
     return start_response(color)
 
@@ -263,7 +263,7 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
 
 def move_to_edge(move, width, height, data):
     retval = 0
-    factor = 1
+    factor = 0.5
     my_head = data["you"]["body"][0]
     if (move == "left"):
         if ((my_head["x"] - 1) == 0):
@@ -630,9 +630,15 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 print("DEBUG: validate_direction: found a clear path to a tail: {}".format(move))    
             else:
                 print("DEBUG: validate_direction: no clear path to a tail: {}".format(move))
+                print("START")
+                print(matrix)
+                print("END")
     else:
-        print("DEBUG: validate_direction: risk score is zero: {}".format(move))
-        good_direction = move
+        good_direction = check_ff_size(move, ff_moves, my_size)
+        if (good_direction != None):
+            print("DEBUG: validate_direction: risk score is zero: {}".format(move))
+        else:
+            print("DEBUG: validate_direction: risk score is zero, but not enough room: {}".format(move))
 
     return good_direction
 
@@ -653,6 +659,11 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     
     preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
+    
+    for pmm in preferred_moves_modified:
+        if pmm not in preferred_moves:
+            print("DEBUG: Adjusting preferred move risk: {}".format(pmm))
+            risk_moves.append((pmm, -1.0))
 
     tail_moves = is_move_a_tail(my_head, data["board"]["snakes"], my_size)
     if (my_size > 3):
@@ -674,7 +685,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data)
         if (temp_direction != None):
             risk_score = get_risk_score(temp_direction, risk_moves)
-            if (risk_score <= 2.0):
+            if (risk_score <= 2.5):
                 direction = temp_direction
                 print("DEBUG: Preferred direction GOOD = {}".format(temp_direction))
                 break
@@ -690,9 +701,9 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
                 print("DEBUG: Least risk direction NOT GOOD = {}".format(temp_direction))
 
     if (direction == None):
-        for rm in risk_moves:
-            print("DEBUG: Simply taking lowest risk = {}".format(temp_direction))
-            direction = rm[0]
+        for ff in ff_moves_no_tails:
+            print("DEBUG: Simply taking largest ff = {}".format(ff[0]))
+            direction = ff[0]
             break
     
     if (direction == None):
