@@ -426,6 +426,38 @@ def clear_path_to_my_tail(matrix, x, y, tails):
                 return True
     return retval
 
+def check_for_bad_move(direction, x, y, heads):
+    retval = False
+    if (direction == "up"):
+        for x1 in range(x - 2, x + 2):
+            for y1 in range(y - 3, y - 1):
+                test = (x1, y1)
+                if (test in heads):
+                    retval = True
+                    break
+    if (direction == "down"):
+        for x1 in range(x - 2, x + 2):
+            for y1 in range(y + 1, y + 3):
+                test = (x1, y1)
+                if (test in heads):
+                    retval = True
+                    break
+    if (direction == "left"):
+        for x1 in range(x - 3, x - 1):
+            for y1 in range(y - 2, y + 2):
+                test = (x1, y1)
+                if (test in heads):
+                    retval = True
+                    break
+    if (direction == "right"):
+        for x1 in range(x + 1, x + 3):
+            for y1 in range(y - 2, y + 2):
+                test = (x1, y1)
+                if (test in heads):
+                    retval = True
+                    break
+    return retval
+
 # get_ff_size: helper function to get risk score for provided direction
 # direction: desired direction
 # ff_moves: array of flood fill information
@@ -633,12 +665,19 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 print("START")
                 print(matrix)
                 print("END")
+    
     else:
         good_direction = check_ff_size(move, ff_moves, my_size)
         if (good_direction != None):
             print("DEBUG: validate_direction: risk score is zero: {}".format(move))
         else:
             print("DEBUG: validate_direction: risk score is zero, but not enough room: {}".format(move))
+    
+    if (good_direction != None):
+        bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data))
+        if (bad_move == True):
+            print("DEBUG: validate_direction: Determined BAD move: {}".format(move))
+            good_direction = None
 
     return good_direction
 
