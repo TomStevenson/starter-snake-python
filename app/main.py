@@ -642,7 +642,7 @@ def get_risk_score(move, risk_moves):
             break
     return risk_score
 
-def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, data):
+def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, data, tail_moves):
     good_direction = None
     
     my_head = data["you"]["body"][0]
@@ -662,6 +662,9 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 print("DEBUG: validate_direction: found a clear path to a tail: {}".format(move))    
             else:
                 print("DEBUG: validate_direction: no clear path to a tail: {}".format(move))
+                if (move in tail_moves):
+                    good_direction = move
+                    print("DEBUG: validate_direction: no clear path, but a tail move: {}".format(move))    
                 print("START")
                 print(matrix)
                 print("END")
@@ -672,6 +675,10 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
             print("DEBUG: validate_direction: risk score is zero: {}".format(move))
         else:
             print("DEBUG: validate_direction: risk score is zero, but not enough room: {}".format(move))
+            cp = check_for_clear_path(matrix, move, my_head["x"], my_head["y"], tails)
+            if (cp == True):
+                good_direction = move
+                print("DEBUG: validate_direction: risk score zero, found a clear path to a tail: {}".format(move))   
     
     #if (good_direction != None):
     #    bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data), data)
@@ -721,7 +728,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
     print("DEBUG: Directions away snake heads = {}".format(away_from_heads))
     ordered_preferred_refined = get_common_elements(ordered_preferred, away_from_heads)
     for op in ordered_preferred_refined:
-        temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data)
+        temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data, tail_moves)
         if (temp_direction != None):
             risk_score = get_risk_score(temp_direction, risk_moves)
             if (risk_score <= 2.5):
@@ -731,7 +738,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     if (direction == None):
         for rm in risk_moves:
-            temp_direction = validate_direction(rm[0], m, risk_moves, ff_moves, ff_moves_no_tails, data)
+            temp_direction = validate_direction(rm[0], m, risk_moves, ff_moves, ff_moves_no_tails, data, tail_moves)
             if (temp_direction != None):
                 direction = temp_direction
                 print("DEBUG: Least risk direction GOOD = {}".format(temp_direction))
@@ -797,7 +804,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 30
+    health_threshold = 25
     hungry = False
     if (my_health <= health_threshold):
         print("DEBUG: I am hungry")
