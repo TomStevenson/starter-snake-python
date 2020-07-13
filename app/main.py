@@ -693,11 +693,11 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 good_direction = move
                 print("DEBUG: validate_direction: risk score zero, found a clear path to a tail: {}".format(move))   
     
-    if (good_direction != None):
-        bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data), data)
-        if (bad_move == True):
-            print("DEBUG: validate_direction: Determined BAD move: {}".format(move))
-            good_direction = None
+    #if (good_direction != None):
+    #    bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data), data)
+    #    if (bad_move == True):
+    #        print("DEBUG: validate_direction: Determined BAD move: {}".format(move))
+    #        good_direction = None
 
     return good_direction
 
