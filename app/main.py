@@ -80,6 +80,19 @@ def is_snake_longer_than_me(data, snake_head):
                 break
     return longer_snake
 
+def is_snake_longer_than_me2(data, snake_head):
+    longer_snake = False
+    for snake in data["board"]["snakes"]:
+        test = (snake["body"][0]["x"], snake["body"][0]["y"])
+        print (snake_head)
+        print (test)
+        if (snake_head == snake["body"][0]):
+            if (snake != data["you"] and (len(snake["body"]) > (len(data["you"]["body"]) - 1))):
+                print("DEBUG: Snake is longer than me !")
+                longer_snake = True
+                break
+    return longer_snake
+
 # populate_bad_coords: define perimeter coordinates just outside the board
 # width: width of the board
 # height: height of the board
@@ -433,28 +446,28 @@ def check_for_bad_move(direction, x, y, heads, data):
             for y1 in range(y - 3, y - 1):
                 test = (x1, y1)
                 if (test in heads):
-                    retval = is_snake_longer_than_me(data, test)
+                    retval = is_snake_longer_than_me2(data, test)
                     break
     if (direction == "down"):
         for x1 in range(x - 2, x + 2):
             for y1 in range(y + 1, y + 3):
                 test = (x1, y1)
                 if (test in heads):
-                    retval = is_snake_longer_than_me(data, test)
+                    retval = is_snake_longer_than_me2(data, test)
                     break
     if (direction == "left"):
         for x1 in range(x - 3, x - 1):
             for y1 in range(y - 2, y + 2):
                 test = (x1, y1)
                 if (test in heads):
-                    retval = is_snake_longer_than_me(data, test)
+                    retval = is_snake_longer_than_me2(data, test)
                     break
     if (direction == "right"):
         for x1 in range(x + 1, x + 3):
             for y1 in range(y - 2, y + 2):
                 test = (x1, y1)
                 if (test in heads):
-                    retval = is_snake_longer_than_me(data, test)
+                    retval = is_snake_longer_than_me2(data, test)
                     break
     return retval
 
@@ -478,7 +491,7 @@ def get_ff_size(direction, ff_moves):
 def check_ff_size(direction, ff_moves, my_size):
     new_direction = None
     ff_size = get_ff_size(direction, ff_moves)
-    if (ff_size >= my_size - 1):
+    if (ff_size >= my_size - 2):
         new_direction = direction
     else:
         new_direction = None
@@ -548,46 +561,46 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
     width = data["board"]["width"]
     if ("left" in possible_moves):
         if (my_head["y"] == 1):
-            for c in range(my_head["x"] + 1, width - 1):
-                if (snake_head_test(data, c,  my_head["y"] - 1)):
+            for c in range(my_head["x"], width - 1):
+                if (snake_head_test(data, c,  0)):
                     if ("left" not in preferred_moves_modified):
                         preferred_moves_modified.append("left")
         if (my_head["y"] == (height - 2)):
-            for c in range(my_head["x"] + 1, width - 1):
+            for c in range(my_head["x"], width - 1):
                 if (snake_head_test(data, c,  my_head["y"] + 1)):
                     if ("left" not in preferred_moves_modified):
                         preferred_moves_modified.append("left")   
     if ("right" in possible_moves):
         if (my_head["y"] == 1):
-            for c in range(0, my_head["x"] - 1):
-                if (snake_head_test(data, c,  my_head["y"] - 1)):
+            for c in range(0, my_head["x"] ):
+                if (snake_head_test(data, c,  0)):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")   
         if (my_head["y"] == (height - 2)):
-            for c in range(0, my_head["x"] + 1):
+            for c in range(0, my_head["x"]):
                 if (snake_head_test(data, c,  my_head["y"] + 1)):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")
     if ("up" in possible_moves):
         if (my_head["x"] == 1):
             for c in range(my_head["y"] + 1, height - 1):
-                if (snake_head_test(data, my_head["x"] - 1, c)):
+                if (snake_head_test(data, 0, c)):
                     if ("up" not in preferred_moves_modified):
                         preferred_moves_modified.append("up")   
         if (my_head["x"] == (width - 2)):
-            for c in range(my_head["y"] + 1, height - 1):
+            for c in range(my_head["y"], height - 1):
                 if (snake_head_test(data, my_head["x"] + 1, c)):
                     if ("up" not in preferred_moves_modified):
                         preferred_moves_modified.append("up")
     if ("down" in possible_moves):
         if (my_head["x"] == 1):
-            for c in range(0, my_head["y"] + 1):
-                if (snake_head_test(data, my_head["x"] - 1, c)):
+            for c in range(0, my_head["y"]):
+                if (snake_head_test(data, 0, c)):
                     if ("down" not in preferred_moves_modified):
                         preferred_moves_modified.append("down")
         if (my_head["x"] == (width - 2)):
-            for c in range(0, my_head["y"] + 1):
-                if (snake_head_test(data, my_head["x"] + 1, c)):
+            for c in range(0, my_head["y"]):
+                if (snake_head_test(data, my_head["x"], c)):
                     if ("down" not in preferred_moves_modified):
                         preferred_moves_modified.append("down")
         
@@ -680,11 +693,11 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 good_direction = move
                 print("DEBUG: validate_direction: risk score zero, found a clear path to a tail: {}".format(move))   
     
-    #if (good_direction != None):
-    #    bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data), data)
-    #    if (bad_move == True):
-    #        print("DEBUG: validate_direction: Determined BAD move: {}".format(move))
-    #        good_direction = None
+    if (good_direction != None):
+        bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data), data)
+        if (bad_move == True):
+            print("DEBUG: validate_direction: Determined BAD move: {}".format(move))
+            good_direction = None
 
     return good_direction
 
@@ -806,13 +819,15 @@ def move():
     shortest_length = len(shortest_snake)
     # check if we have a longer snake on the board
     longer_snake = is_there_a_longer_snake(data)
+    # get number of active snakes 
+    number_of_active_snakes = len(data["board"]["snakes"])
 
     # get list of food and determine closest food to my head
     food_sorted_by_proximity = get_food_list(my_head, data)
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 5
+    health_threshold = 20
     hungry = False
     if (my_health <= health_threshold):
         print("DEBUG: I am hungry")
@@ -821,10 +836,14 @@ def move():
     if (longer_snake != None) or (hungry == True):
         print("DEBUG: Go get food")
         hungry = True
-    elif (shortest_length < len(data["you"]["body"])):
+    elif ((number_of_active_snakes > 1) and (shortest_length < len(data["you"]["body"]))):
         print("DEBUG: Chase shortest snake")
         target["x"] = shortest_snake["body"][0]["x"]
         target["y"] = shortest_snake["body"][0]["y"]
+    else:
+        print("DEBUG: Chase tail")
+        target["x"] = my_tail["x"]
+        target["y"] = my_tail["y"]
 
     # determine possible moves - remove any entries where we need to avoid snake heads
     possible_moves = get_possible_moves(my_head, my_tail, bad_coords, snake_coords)
