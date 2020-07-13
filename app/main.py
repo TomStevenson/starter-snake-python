@@ -828,6 +828,10 @@ def move():
     
     # specify health threshold to go get food
     health_threshold = 20
+    amount_of_food = len(food_sorted_by_proximity)
+    if (amount_of_food > 10):
+        health_threshold = 5
+
     hungry = False
     if (my_health <= health_threshold):
         print("DEBUG: I am hungry")
