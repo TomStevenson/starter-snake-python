@@ -46,7 +46,10 @@ def start():
     return start_response(color)
 
 def get_food_list(snake_head, data):
+    height = data["board"]["height"]
+    width = data["board"]["width"]
     closest = []
+    worst_case = []
     last_score = 999999
     l = []
     for current_food in data["board"]["food"]:
@@ -54,9 +57,20 @@ def get_food_list(snake_head, data):
         current_distance[0] = abs(snake_head["x"] - current_food["x"])
         current_distance[1] = abs(snake_head["y"] - current_food["y"])
         current_score = current_distance[0] + current_distance[1]
+        worst_case = current_food
+        test1 = (0, 0)
+        test2 = (0, height - 1)
+        test3 = (width - 1, 0)
+        test4 = (width - 1, height - 1)
         if current_score < last_score:
-            closest = current_food
-            last_score = current_score
+            cf = (current_food["x"], current_food["y"])
+            if (cf != test1 and cf != test2 and cf != test3 and cf != test4):
+                closest = current_food
+                last_score = current_score
+            else:
+                closest = worst_case
+                last_score = current_score
+                print("DEBUG: Avoid food in corner with next option")
     l.append(closest)
     return l
 
