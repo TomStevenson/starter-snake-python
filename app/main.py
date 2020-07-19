@@ -52,39 +52,45 @@ def get_food_list(snake_head, data):
     worst_case = []
     last_score = 999999
     l = []
+
+    points = []
+    points.append((0, 0))
+    #points.append((0, 1))
+    #points.append((1, 0))
+    #points.append((1, 1))
+    points.append((0, height - 1))
+    #points.append((0, height - 2))
+    #points.append((1, height - 1))
+    #points.append((1, height - 2))
+    points.append((width - 1, 0))
+    #points.append((width - 2, 0))
+    #points.append((width - 1, 1))
+    #points.append((width - 2, 1))
+    points.append((width - 1, height - 1))
+    #points.append((width - 1, height - 2))
+    #points.append((width - 2, height - 1))
+    #points.append((width - 2, height - 2))
+
     for current_food in data["board"]["food"]:
         current_distance = [99, 99]
         current_distance[0] = abs(snake_head["x"] - current_food["x"])
         current_distance[1] = abs(snake_head["y"] - current_food["y"])
         current_score = current_distance[0] + current_distance[1]
-        worst_case = current_food
-        points = []
-        points.append((0, 0))
-        points.append((0, 1))
-        points.append((1, 0))
-        points.append((1, 1))
-        points.append((0, height - 1))
-        points.append((0, height - 2))
-        points.append((1, height - 1))
-        points.append((1, height - 2))
-        points.append((width - 1, 0))
-        points.append((width - 2, 0))
-        points.append((width - 1, 1))
-        points.append((width - 2, 1))
-        points.append((width - 1, height - 1))
-        points.append((width - 1, height - 2))
-        points.append((width - 2, height - 1))
-        points.append((width - 2, height - 2))
-        
+        if (len(worst_case) == 0):
+            print("DEBUG: Setting worst case food: {}".format(current_food))
+            worst_case = current_food
+
         if current_score < last_score:
             cf = (current_food["x"], current_food["y"])
             if (cf not in points):
                 closest = current_food
                 last_score = current_score
+                print("DEBUG: Setting closest: {}".format(closest))
             else:
                 closest = worst_case
-                last_score = current_score
+                last_score = 999999
                 print("DEBUG: Avoid food in corner with next option")
+    print("DEBUG: Targeted food: {}".format(closest))
     l.append(closest)
     return l
 
@@ -112,8 +118,8 @@ def is_snake_longer_than_me2(data, snake_head):
     longer_snake = False
     for snake in data["board"]["snakes"]:
         test = (snake["body"][0]["x"], snake["body"][0]["y"])
-        print (snake_head)
-        print (test)
+        #print (snake_head)
+        #print (test)
         if (snake_head == snake["body"][0]):
             if (snake != data["you"] and (len(snake["body"]) > (len(data["you"]["body"]) - 1))):
                 print("DEBUG: Snake is longer than me !")
@@ -163,7 +169,10 @@ def populate_snake_coords(data, exclude_tails):
     for snake in data["board"]["snakes"]:
         for xycoord in snake["body"]:
             bad = (xycoord["x"], xycoord["y"])
-            if ((exclude_tails == False) or (bad not in snake_tails)):
+            if (bad in snake_tails):
+                if(exclude_tails == False):
+                    snakeCoords.append(bad)
+            else:
                 snakeCoords.append(bad)
     return snakeCoords
 
@@ -257,7 +266,7 @@ def test_for_snake_head(direction, coords_to_test, snake_heads, data):
                     other_snake_size = len(snake["body"])
                     if (my_size <= other_snake_size):
                         heads_to_avoid.append(direction)
-                        print("DEBUG: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Avoid snake head!")
+                        print("DEBUG: Avoid snake head!: {}".format(direction))
     return heads_to_avoid
 
 # get_snake_heads_to_avoid: checks for other snake headsin all directions
@@ -479,6 +488,7 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
                 area += 1
             test = (x1, y1)
             print(test)
+            print(heads)
             if (test in heads):
                 if (is_snake_longer_than_me2(data, test)):
                     print("SNAKE HEAD")
@@ -487,7 +497,7 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
                     print("SNAKE HEAD SMALLER THAN ME")
                     count += 2
             if (test in snake_coords):
-                count += 1
+                count += 0
                 print("SNAKE PART")
     print(count)
     print(area)
@@ -502,16 +512,16 @@ def check_for_bad_move(direction, x, y, heads, data):
     snake_coords = populate_snake_coords(data, False)
     if (direction == "up"):
         risk = calc_risk(x, y - 1, -1, 3, -3, 0, heads, snake_coords, data)
-        print ("BAD MOVE CALC: up {}".format(risk))
+        print ("DEBUG: Bad Move Calculation: up {}".format(risk))
     if (direction == "down"):
         risk = calc_risk(x, y + 1, -1, 3, 0, 3, heads, snake_coords, data)
-        print ("BAD MOVE CALC: down {}".format(risk))
+        print ("DEBUG: Bad Move Calculation: down {}".format(risk))
     if (direction == "left"):
         risk = calc_risk(x - 1, y, -3, 0, -1, 3, heads, snake_coords, data)
-        print ("BAD MOVE CALC: left {}".format(risk))
+        print ("DEBUG: Bad Move Calculation: left {}".format(risk))
     if (direction == "right"):
         risk = calc_risk(x + 1, y, 0, 3, -1, 3, heads, snake_coords, data)
-        print ("BAD MOVE CALC: right {}".format(risk))
+        print ("DEBUG: Bad Move Calculation: right {}".format(risk))
     
     if (risk > 0.43):
         retval = True
@@ -790,7 +800,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data, tail_moves, hungry)
         if (temp_direction != None):
             risk_score = get_risk_score(temp_direction, risk_moves)
-            if (risk_score <= 2.15):
+            if (risk_score <= 3.0):
                 direction = temp_direction
                 print("DEBUG: Preferred direction GOOD = {}".format(temp_direction))
                 break
@@ -873,7 +883,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 20
+    health_threshold = 15
     amount_of_food = len(data["board"]["food"])
     if (amount_of_food > 10):
         health_threshold = 5
