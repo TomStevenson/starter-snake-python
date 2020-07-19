@@ -58,13 +58,27 @@ def get_food_list(snake_head, data):
         current_distance[1] = abs(snake_head["y"] - current_food["y"])
         current_score = current_distance[0] + current_distance[1]
         worst_case = current_food
-        test1 = (0, 0)
-        test2 = (0, height - 1)
-        test3 = (width - 1, 0)
-        test4 = (width - 1, height - 1)
+        points = []
+        points.append((0, 0))
+        points.append((0, 1))
+        points.append((1, 0))
+        points.append((1, 1))
+        points.append((0, height - 1))
+        points.append((0, height - 2))
+        points.append((1, height - 1))
+        points.append((1, height - 2))
+        points.append((width - 1, 0))
+        points.append((width - 2, 0))
+        points.append((width - 1, 1))
+        points.append((width - 2, 1))
+        points.append((width - 1, height - 1))
+        points.append((width - 1, height - 2))
+        points.append((width - 2, height - 1))
+        points.append((width - 2, height - 2))
+        
         if current_score < last_score:
             cf = (current_food["x"], current_food["y"])
-            if (cf != test1 and cf != test2 and cf != test3 and cf != test4):
+            if (cf not in points):
                 closest = current_food
                 last_score = current_score
             else:
@@ -453,36 +467,54 @@ def clear_path_to_my_tail(matrix, x, y, tails):
                 return True
     return retval
 
+def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
+    area = 0
+    count = 0
+    height = data["board"]["height"]
+    width = data["board"]["width"]
+    for x1 in range(x + xval1, x + xval2):
+        for y1 in range(y + yval1, y + yval2):
+            if ((x1 >= 0) and (y1 >= 0) and (x1 < width) and (y1 < height)):
+                print("Counts as area")
+                area += 1
+            test = (x1, y1)
+            print(test)
+            if (test in heads):
+                if (is_snake_longer_than_me2(data, test)):
+                    print("SNAKE HEAD")
+                    count += 5
+                else:
+                    print("SNAKE HEAD SMALLER THAN ME")
+                    count += 2
+            if (test in snake_coords):
+                count += 1
+                print("SNAKE PART")
+    print(count)
+    print(area)
+    if (area > 0):
+        risk = count / area
+    else:
+        risk = 0
+    return risk
+
 def check_for_bad_move(direction, x, y, heads, data):
     retval = False
+    snake_coords = populate_snake_coords(data, False)
     if (direction == "up"):
-        for x1 in range(x - 2, x + 2):
-            for y1 in range(y - 3, y - 1):
-                test = (x1, y1)
-                if (test in heads):
-                    retval = is_snake_longer_than_me2(data, test)
-                    break
+        risk = calc_risk(x, y - 1, -1, 3, -3, 0, heads, snake_coords, data)
+        print ("BAD MOVE CALC: up {}".format(risk))
     if (direction == "down"):
-        for x1 in range(x - 2, x + 2):
-            for y1 in range(y + 1, y + 3):
-                test = (x1, y1)
-                if (test in heads):
-                    retval = is_snake_longer_than_me2(data, test)
-                    break
+        risk = calc_risk(x, y + 1, -1, 3, 0, 3, heads, snake_coords, data)
+        print ("BAD MOVE CALC: down {}".format(risk))
     if (direction == "left"):
-        for x1 in range(x - 3, x - 1):
-            for y1 in range(y - 2, y + 2):
-                test = (x1, y1)
-                if (test in heads):
-                    retval = is_snake_longer_than_me2(data, test)
-                    break
+        risk = calc_risk(x - 1, y, -3, 0, -1, 3, heads, snake_coords, data)
+        print ("BAD MOVE CALC: left {}".format(risk))
     if (direction == "right"):
-        for x1 in range(x + 1, x + 3):
-            for y1 in range(y - 2, y + 2):
-                test = (x1, y1)
-                if (test in heads):
-                    retval = is_snake_longer_than_me2(data, test)
-                    break
+        risk = calc_risk(x + 1, y, 0, 3, -1, 3, heads, snake_coords, data)
+        print ("BAD MOVE CALC: right {}".format(risk))
+    
+    if (risk > 0.43):
+        retval = True
     return retval
 
 # get_ff_size: helper function to get risk score for provided direction
@@ -692,9 +724,9 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 if (move in tail_moves and hungry == False):
                     good_direction = move
                     print("DEBUG: validate_direction: no clear path, but a tail move: {}".format(move))    
-                print("START")
-                print(matrix)
-                print("END")
+                #print("START")
+                #print(matrix)
+                #print("END")
     
     else:
         good_direction = check_ff_size(move, ff_moves, my_size)
@@ -707,11 +739,11 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 good_direction = move
                 print("DEBUG: validate_direction: risk score zero, found a clear path to a tail: {}".format(move))   
     
-    #if (good_direction != None):
-    #    bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data), data)
-    #    if (bad_move == True):
-    #        print("DEBUG: validate_direction: Determined BAD move: {}".format(move))
-    #        good_direction = None
+    if (good_direction != None):
+        bad_move = check_for_bad_move(move, my_head["x"], my_head["y"], get_snake_array(0, data), data)
+        if (bad_move == True):
+            print("DEBUG: validate_direction: Determined BAD move: {}".format(move))
+            good_direction = None
 
     return good_direction
 
@@ -758,7 +790,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
         temp_direction = validate_direction(op, m, risk_moves, ff_moves, ff_moves_no_tails, data, tail_moves, hungry)
         if (temp_direction != None):
             risk_score = get_risk_score(temp_direction, risk_moves)
-            if (risk_score <= 2.5):
+            if (risk_score <= 2.15):
                 direction = temp_direction
                 print("DEBUG: Preferred direction GOOD = {}".format(temp_direction))
                 break
