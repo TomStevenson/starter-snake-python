@@ -55,21 +55,9 @@ def get_food_list(snake_head, data):
 
     points = []
     points.append((0, 0))
-    #points.append((0, 1))
-    #points.append((1, 0))
-    #points.append((1, 1))
     points.append((0, height - 1))
-    #points.append((0, height - 2))
-    #points.append((1, height - 1))
-    #points.append((1, height - 2))
     points.append((width - 1, 0))
-    #points.append((width - 2, 0))
-    #points.append((width - 1, 1))
-    #points.append((width - 2, 1))
     points.append((width - 1, height - 1))
-    #points.append((width - 1, height - 2))
-    #points.append((width - 2, height - 1))
-    #points.append((width - 2, height - 2))
 
     for current_food in data["board"]["food"]:
         current_distance = [99, 99]
@@ -118,8 +106,6 @@ def is_snake_longer_than_me2(data, snake_head):
     longer_snake = False
     for snake in data["board"]["snakes"]:
         test = (snake["body"][0]["x"], snake["body"][0]["y"])
-        #print (snake_head)
-        #print (test)
         if (snake_head == snake["body"][0]):
             if (snake != data["you"] and (len(snake["body"]) > (len(data["you"]["body"]) - 1))):
                 print("DEBUG: Snake is longer than me !")
@@ -523,7 +509,7 @@ def check_for_bad_move(direction, x, y, heads, data):
         risk = calc_risk(x + 1, y, 0, 3, -1, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: right {}".format(risk))
     
-    if (risk > 0.43):
+    if (risk > 0.4):
         retval = True
     return retval
 
@@ -734,10 +720,6 @@ def validate_direction(move, matrix, risk_moves, ff_moves, ff_moves_no_tails, da
                 if (move in tail_moves and hungry == False):
                     good_direction = move
                     print("DEBUG: validate_direction: no clear path, but a tail move: {}".format(move))    
-                #print("START")
-                #print(matrix)
-                #print("END")
-    
     else:
         good_direction = check_ff_size(move, ff_moves, my_size)
         if (good_direction != None):
@@ -883,7 +865,7 @@ def move():
     target = food_sorted_by_proximity[0]
     
     # specify health threshold to go get food
-    health_threshold = 15
+    health_threshold = 25
     amount_of_food = len(data["board"]["food"])
     if (amount_of_food > 10):
         health_threshold = 5
