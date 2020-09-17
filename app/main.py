@@ -509,7 +509,7 @@ def check_for_bad_move(direction, x, y, heads, data):
         risk = calc_risk(x + 1, y, 0, 3, -1, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: right {}".format(risk))
     
-    if (risk > 0.4):
+    if (risk > 0.39):
         retval = True
     return retval
 
