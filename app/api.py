@@ -8,12 +8,7 @@ def ping_response():
 
 def start_response():
     return HTTPResponse(
-        status=200,
-        headers={
-            "Content-Type": "application/json"
-        },
-        body=json.dumps({
-        })
+        status=200
     )
 
 def get_response():
