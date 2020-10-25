@@ -43,7 +43,7 @@ def start():
 
     return start_response()
 
-@bottle.post('/get')
+@bottle.get('/get')
 def get():
     data = bottle.request.json
 
