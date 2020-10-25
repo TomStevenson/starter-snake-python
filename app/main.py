@@ -4,7 +4,7 @@ import random
 import bottle
 from cheroot import wsgi
 
-from .api import ping_response, start_response, move_response, end_response
+from .api import ping_response, start_response, move_response, end_response, get_response
 
 @bottle.route('/')
 def index():
