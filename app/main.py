@@ -41,9 +41,7 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#3dcd58"
-
-    return start_response(color)
+    return start_response()
 
 @bottle.post('/get')
 def get():
