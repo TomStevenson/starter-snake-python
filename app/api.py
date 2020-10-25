@@ -23,7 +23,7 @@ def get_response():
             "Content-Type": "application/json"
         },
         body=json.dumps({
-            "apiversion": 1,
+            "apiversion": "1",
             "author": "ThomasStevenson",
             "color": "#3dcd58",
             "head" : "default",
