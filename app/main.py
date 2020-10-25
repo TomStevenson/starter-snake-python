@@ -45,6 +45,18 @@ def start():
 
     return start_response(color)
 
+@bottle.post('/get')
+def get():
+    data = bottle.request.json
+
+    """
+    TODO: If you intend to have a stateful snake AI,
+            initialize your snake state here using the
+            request's data if necessary.
+    """
+    print(json.dumps(data))
+    return get_response()
+
 def get_food_list(snake_head, data):
     height = data["board"]["height"]
     width = data["board"]["width"]
