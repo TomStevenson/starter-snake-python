@@ -45,14 +45,6 @@ def start():
 
 @bottle.route('/', method='GET')
 def get():
-    data = bottle.request.json
-
-    """
-    TODO: If you intend to have a stateful snake AI,
-            initialize your snake state here using the
-            request's data if necessary.
-    """
-    print(json.dumps(data))
     return get_response()
 
 def get_food_list(snake_head, data):
@@ -214,11 +206,11 @@ def get_possible_moves(my_head, my_tail, bad_coords, snake_coords):
     if (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("right") 
     # up
-    coord = (my_head["x"], my_head["y"] - 1)
+    coord = (my_head["x"], my_head["y"] + 1)
     if (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("up")
     # down
-    coord = (my_head["x"], my_head["y"] + 1)
+    coord = (my_head["x"], my_head["y"] - 1)
     if (coord not in bad_coords) and (coord not in snake_coords):
         possible_moves.append("down")
     return possible_moves
@@ -237,11 +229,11 @@ def get_preferred_moves(my_head, target, possible_moves):
         if ("right" in possible_moves):
             preferred_moves.append("right")
     if target["y"] < my_head["y"]:
-        if ("up" in possible_moves):
-            preferred_moves.append("up")
-    elif target["y"] > my_head["y"]:
         if ("down" in possible_moves):
             preferred_moves.append("down")
+    elif target["y"] > my_head["y"]:
+        if ("up" in possible_moves):
+            preferred_moves.append("up")
     print("DEBUG: Preferred moves to get us to target: {}".format(preferred_moves))
     return preferred_moves
 
@@ -289,20 +281,20 @@ def get_snake_heads_to_avoid(my_head, snake_heads, data):
     test_areas.append((my_head["x"] + 2, my_head["y"] + 1))
     temp = temp + test_for_snake_head("right", test_areas, snake_heads, data)
     test_areas.clear()
-    test_areas.append((my_head["x"], my_head["y"] - 1))
-    test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
-    test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
-    test_areas.append((my_head["x"], my_head["y"] - 2))
-    test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
-    test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
-    temp = temp + test_for_snake_head("up", test_areas, snake_heads, data)
-    test_areas.clear()
     test_areas.append((my_head["x"], my_head["y"] + 1))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 1))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 1))
     test_areas.append((my_head["x"], my_head["y"] + 2))
     test_areas.append((my_head["x"] - 1, my_head["y"] + 2))
     test_areas.append((my_head["x"] + 1, my_head["y"] + 2))
+    temp = temp + test_for_snake_head("up", test_areas, snake_heads, data)
+    test_areas.clear()
+    test_areas.append((my_head["x"], my_head["y"] - 1))
+    test_areas.append((my_head["x"] - 1, my_head["y"] - 1))
+    test_areas.append((my_head["x"] + 1, my_head["y"] - 1))
+    test_areas.append((my_head["x"], my_head["y"] - 2))
+    test_areas.append((my_head["x"] - 1, my_head["y"] - 2))
+    test_areas.append((my_head["x"] + 1, my_head["y"] - 2))
     temp = temp + test_for_snake_head("down", test_areas, snake_heads, data)
     print("DEBUG: Avoid Head Moves: {}".format(temp))
     return temp
@@ -318,10 +310,10 @@ def move_to_edge(move, width, height, data):
         if ((my_head["x"] + 1) == width - 1):
             retval = factor
     if (move == "up"):
-        if ((my_head["y"] - 1) == 0):
+        if ((my_head["y"] + 1) == 0):
             retval = factor
     if (move == "down"):
-        if ((my_head["y"] + 1) == height - 1):
+        if ((my_head["y"] - 1) == height - 1):
             retval = factor
     print(" DEBUG: Move to Edge: {}".format(retval))
     return retval
@@ -375,12 +367,12 @@ def scan_matrix(matrix, width, height, possible_moves, snake_heads):
                     left += 20
                 else:
                     left += 1
-            if ((y > (height / 2)) and (matrix[x][y] == 's')):
+            if ((y <= (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     down += 20
                 else:
                     down += 1
-            if ((y <= (height / 2)) and (matrix[x][y] == 's')):
+            if ((y > (height / 2)) and (matrix[x][y] == 's')):
                 if (test in snake_heads):
                     up += 20
                 else:
@@ -441,9 +433,9 @@ def check_for_clear_path(matrix, direction, x, y, tails):
     if (direction == "right"):
         x_factor = 1
     if (direction == "up"):
-        y_factor = -1
-    if (direction == "down"):
         y_factor = 1
+    if (direction == "down"):
+        y_factor = -1
     retval = clear_path_to_my_tail(matrix, x + x_factor, y + y_factor, tails)
     return retval
 
@@ -480,23 +472,23 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
     for x1 in range(x + xval1, x + xval2):
         for y1 in range(y + yval1, y + yval2):
             if ((x1 >= 0) and (y1 >= 0) and (x1 < width) and (y1 < height)):
-                print("Counts as area")
+                #print("Counts as area")
                 area += 1
             test = (x1, y1)
-            print(test)
-            print(heads)
+            #print(test)
+            #print(heads)
             if (test in heads):
                 if (is_snake_longer_than_me2(data, test)):
-                    print("SNAKE HEAD")
+                    #print("SNAKE HEAD")
                     count += 5
                 else:
-                    print("SNAKE HEAD SMALLER THAN ME")
+                    #print("SNAKE HEAD SMALLER THAN ME")
                     count += 2
             if (test in snake_coords):
                 count += 0
-                print("SNAKE PART")
-    print(count)
-    print(area)
+                #print("SNAKE PART")
+    #print(count)
+    #print(area)
     if (area > 0):
         risk = count / area
     else:
@@ -507,10 +499,10 @@ def check_for_bad_move(direction, x, y, heads, data):
     retval = False
     snake_coords = populate_snake_coords(data, False)
     if (direction == "up"):
-        risk = calc_risk(x, y - 1, -1, 3, -3, 0, heads, snake_coords, data)
+        risk = calc_risk(x, y + 1, -1, 3, -3, 0, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: up {}".format(risk))
     if (direction == "down"):
-        risk = calc_risk(x, y + 1, -1, 3, 0, 3, heads, snake_coords, data)
+        risk = calc_risk(x, y - 1, -1, 3, 0, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: down {}".format(risk))
     if (direction == "left"):
         risk = calc_risk(x - 1, y, -3, 0, -1, 3, heads, snake_coords, data)
@@ -570,8 +562,8 @@ def is_move_a_tail(my_head, snakes, my_size):
             the_tail = (snake["body"][the_size]["x"], snake["body"][the_size]["y"])
            
             # build test points
-            up = (my_head["x"], my_head["y"] - 1)
-            down = (my_head["x"], my_head["y"] + 1)
+            up = (my_head["x"], my_head["y"] + 1)
+            down = (my_head["x"], my_head["y"] - 1)
             left = (my_head["x"] - 1, my_head["y"])
             right = (my_head["x"] + 1, my_head["y"])
             
@@ -633,7 +625,7 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
                 if (snake_head_test(data, c,  my_head["y"] + 1)):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")
-    if ("up" in possible_moves):
+    if ("down" in possible_moves):
         if (my_head["x"] == 1):
             for c in range(my_head["y"] + 1, height - 1):
                 if (snake_head_test(data, 0, c)):
@@ -644,7 +636,7 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
                 if (snake_head_test(data, my_head["x"] + 1, c)):
                     if ("up" not in preferred_moves_modified):
                         preferred_moves_modified.append("up")
-    if ("down" in possible_moves):
+    if ("up" in possible_moves):
         if (my_head["x"] == 1):
             for c in range(0, my_head["y"]):
                 if (snake_head_test(data, 0, c)):
@@ -661,11 +653,11 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
         return preferred_moves_modified
 
     for pm in preferred_moves:
-        if pm == "up":
+        if pm == "down":
             if (((my_head["y"] - 1) != 0) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("up" not in preferred_moves_modified):
                     preferred_moves_modified.append("up")
-        if pm == "down":
+        if pm == "up":
             if (((my_head["y"] + 1) != (height - 1)) or (my_head["x"] != 0) or (my_head["x"] != (width - 1)) or (hungry == True)):
                 if ("down" not in preferred_moves_modified):
                     preferred_moves_modified.append("down")
@@ -691,10 +683,10 @@ def which_directions_are_away_from_snake_heads(my_head, snake_heads, data):
                 if ("left" not in snake_heads):
                     retval.append("left")
             y = my_head["y"] - sh[1]
-            if (y > 0):
+            if (y < 0):
                 if ("down" not in snake_heads):
                     retval.append("down")
-            if (y < 0):
+            if (y > 0):
                 if ("up" not in snake_heads):
                     retval.append("up")
     return retval
@@ -762,7 +754,7 @@ def make_decision(preferred_moves, possible_moves, last_ditch_possible_moves, ri
 
     my_head = data["you"]["body"][0]
     my_size = len(data["you"]["body"])
-    my_tail = data["you"]["body"][my_size-1]
+    #my_tail = data["you"]["body"][my_size-1]
     
     preferred_moves_modified = modify_preferred_moves(preferred_moves, possible_moves, data, hungry)
     print("DEBUG: Modified Preferred Moves: {}".format(preferred_moves_modified))
@@ -935,9 +927,9 @@ def move():
     # build array of sizes of empty squares in flood fill of all four directions
     ff_moves = []
     if ("up" in last_ditch_possible_moves):
-        ff_moves.append(("up", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)))
+        ff_moves.append(("up", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], 0)))
     if ("down" in last_ditch_possible_moves):
-        ff_moves.append(("down", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)))
+        ff_moves.append(("down", build_floodfill_move(width, height, snake_coords, data, my_head["x"], my_head["y"] - 1, my_head["y"], height - 1)))
     if ("left" in last_ditch_possible_moves):
         ff_moves.append(("left", build_floodfill_move(width, height, snake_coords, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)))
     if ("right" in last_ditch_possible_moves):
@@ -947,9 +939,9 @@ def move():
 
     ff_moves_no_tails = []
     if ("up" in last_ditch_possible_moves):
-        ff_moves_no_tails.append(("up", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"], my_head["y"] - 1, my_head["y"], 0)))
+        ff_moves_no_tails.append(("up", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"], my_head["y"] + 1, my_head["y"], 0)))
     if ("down" in last_ditch_possible_moves):
-        ff_moves_no_tails.append(("down", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"], my_head["y"] + 1, my_head["y"], height - 1)))
+        ff_moves_no_tails.append(("down", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"], my_head["y"] - 1, my_head["y"], height - 1)))
     if ("left" in last_ditch_possible_moves):
         ff_moves_no_tails.append(("left", build_floodfill_move(width, height, snake_coords_no_tails, data, my_head["x"] - 1, my_head["y"], my_head["x"], 0)))
     if ("right" in last_ditch_possible_moves):
