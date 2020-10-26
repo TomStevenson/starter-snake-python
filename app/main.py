@@ -625,7 +625,7 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
                 if (snake_head_test(data, c,  my_head["y"] + 1)):
                     if ("right" not in preferred_moves_modified):
                         preferred_moves_modified.append("right")
-    if ("down" in possible_moves):
+    if ("up" in possible_moves):
         if (my_head["x"] == 1):
             for c in range(my_head["y"] + 1, height - 1):
                 if (snake_head_test(data, 0, c)):
@@ -636,7 +636,7 @@ def modify_preferred_moves(preferred_moves, possible_moves, data, hungry):
                 if (snake_head_test(data, my_head["x"] + 1, c)):
                     if ("up" not in preferred_moves_modified):
                         preferred_moves_modified.append("up")
-    if ("up" in possible_moves):
+    if ("down" in possible_moves):
         if (my_head["x"] == 1):
             for c in range(0, my_head["y"]):
                 if (snake_head_test(data, 0, c)):
