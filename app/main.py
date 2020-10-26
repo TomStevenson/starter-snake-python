@@ -413,9 +413,9 @@ def floodfill_algorithm(matrix, x, y, count):
         if x < len(matrix[y]) - 1:
             count = floodfill_algorithm(matrix, x+1, y, count)
         if y > 0:
-            count = floodfill_algorithm(matrix, x, y+1, count)
-        if y < len(matrix[x]) - 1:
             count = floodfill_algorithm(matrix, x, y-1, count)
+        if y < len(matrix[x]) - 1:
+            count = floodfill_algorithm(matrix, x, y+1, count)
     return count
 
 # build_floodfill_move: helper function to call floodfill algorithm
@@ -455,11 +455,11 @@ def clear_path_to_my_tail(matrix, x, y, tails):
             if (r == True):
                 return True
         if y > 0:
-            r = clear_path_to_my_tail(matrix, x, y + 1, tails)
+            r = clear_path_to_my_tail(matrix, x, y - 1, tails)
             if (r == True):
                 return True
         if y < len(matrix[x]) - 1:
-            r = clear_path_to_my_tail(matrix, x, y - 1, tails)
+            r = clear_path_to_my_tail(matrix, x, y + 1, tails)
             if (r == True):
                 return True
     return retval
@@ -498,11 +498,11 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
 def check_for_bad_move(direction, x, y, heads, data):
     retval = False
     snake_coords = populate_snake_coords(data, False)
-    if (direction == "up"):
-        risk = calc_risk(x, y + 1, -1, 3, 0, 3, heads, snake_coords, data)
-        print ("DEBUG: Bad Move Calculation: up {}".format(risk))
     if (direction == "down"):
-        risk = calc_risk(x, y - 1, -1, 3, -3, 0, heads, snake_coords, data)
+        risk = calc_risk(x, y + 1, -1, 3, -3, 0, heads, snake_coords, data)
+        print ("DEBUG: Bad Move Calculation: up {}".format(risk))
+    if (direction == "up"):
+        risk = calc_risk(x, y - 1, -1, 3, 0, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: down {}".format(risk))
     if (direction == "left"):
         risk = calc_risk(x - 1, y, -3, 0, -1, 3, heads, snake_coords, data)
