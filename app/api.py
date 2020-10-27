@@ -21,8 +21,8 @@ def get_response():
             "apiversion": "1",
             "author": "ThomasStevenson",
             "color": "#3dcd58",
-            "head" : "default",
-            "tail": "default"
+            "head" : "evil",
+            "tail": "bolt"
         })
     )
 
