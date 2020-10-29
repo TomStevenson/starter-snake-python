@@ -475,6 +475,9 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
                 #print("Counts as area")
                 area += 1
             test = (x1, y1)
+            if ((x1 == 0) or (x1 == width-1) or (y1 == 0) or (y1 == height - 1))
+                print("DEBUG: along edges, boosting risk")
+                area += 1
             #print(test)
             #print(heads)
             if (test in heads):
@@ -500,10 +503,10 @@ def check_for_bad_move(direction, x, y, heads, data):
     snake_coords = populate_snake_coords(data, False)
     if (direction == "down"):
         risk = calc_risk(x, y + 1, -1, 3, -3, 0, heads, snake_coords, data)
-        print ("DEBUG: Bad Move Calculation: up {}".format(risk))
+        print ("DEBUG: Bad Move Calculation: down {}".format(risk))
     if (direction == "up"):
         risk = calc_risk(x, y - 1, -1, 3, 0, 3, heads, snake_coords, data)
-        print ("DEBUG: Bad Move Calculation: down {}".format(risk))
+        print ("DEBUG: Bad Move Calculation: up {}".format(risk))
     if (direction == "left"):
         risk = calc_risk(x - 1, y, -3, 0, -1, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: left {}".format(risk))
