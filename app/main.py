@@ -475,7 +475,7 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
                 #print("Counts as area")
                 area += 1
             test = (x1, y1)
-            if ((x1 == 0) or (x1 == width-1) or (y1 == 0) or (y1 == height - 1))
+            if ((x1 == 0) or (x1 == width-1) or (y1 == 0) or (y1 == height - 1)):
                 print("DEBUG: along edges, boosting risk")
                 area += 1
             #print(test)
