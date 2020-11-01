@@ -502,16 +502,16 @@ def check_for_bad_move(direction, x, y, heads, data):
     retval = False
     snake_coords = populate_snake_coords(data, False)
     if (direction == "down"):
-        risk = calc_risk(x, y + 1, -1, 3, -3, 0, heads, snake_coords, data)
+        risk = calc_risk(x, y + 1, -1, 3, -4, 0, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: down {}".format(risk))
     if (direction == "up"):
-        risk = calc_risk(x, y - 1, -1, 3, 0, 3, heads, snake_coords, data)
+        risk = calc_risk(x, y - 1, -1, 3, 0, 4, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: up {}".format(risk))
     if (direction == "left"):
-        risk = calc_risk(x - 1, y, -3, 0, -1, 3, heads, snake_coords, data)
+        risk = calc_risk(x - 1, y, -4, 0, -1, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: left {}".format(risk))
     if (direction == "right"):
-        risk = calc_risk(x + 1, y, 0, 3, -1, 3, heads, snake_coords, data)
+        risk = calc_risk(x + 1, y, 0, 4, -1, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: right {}".format(risk))
     
     if (risk > 0.39):
