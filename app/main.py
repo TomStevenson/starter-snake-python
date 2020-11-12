@@ -477,16 +477,16 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
             test = (x1, y1)
             if ((x1 == 0) or (x1 == width-1) or (y1 == 0) or (y1 == height - 1)):
                 print("DEBUG: along edges, boosting risk")
-                area += 1
+                area += 2
             #print(test)
             #print(heads)
             if (test in heads):
                 if (is_snake_longer_than_me2(data, test)):
                     #print("SNAKE HEAD")
-                    count += 8
+                    count += 5
                 else:
                     #print("SNAKE HEAD SMALLER THAN ME")
-                    count += 6
+                    count += 5
             if (test in snake_coords):
                 count += 0
                 #print("SNAKE PART")
