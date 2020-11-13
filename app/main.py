@@ -483,12 +483,12 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
             if (test in heads):
                 if (is_snake_longer_than_me2(data, test)):
                     #print("SNAKE HEAD")
-                    count += 5
+                    count += 6
                 else:
                     #print("SNAKE HEAD SMALLER THAN ME")
-                    count += 5
+                    count += 3
             if (test in snake_coords):
-                count += 0
+                count += 1
                 #print("SNAKE PART")
     #print(count)
     #print(area)
