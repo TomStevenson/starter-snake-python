@@ -477,7 +477,7 @@ def calc_risk(x, y, xval1, xval2, yval1, yval2, heads, snake_coords, data):
             test = (x1, y1)
             if ((x1 == 0) or (x1 == width-1) or (y1 == 0) or (y1 == height - 1)):
                 print("DEBUG: along edges, boosting risk")
-                area += 2
+                area += 1
             #print(test)
             #print(heads)
             if (test in heads):
@@ -514,7 +514,7 @@ def check_for_bad_move(direction, x, y, heads, data):
         risk = calc_risk(x + 1, y, 0, 4, -1, 3, heads, snake_coords, data)
         print ("DEBUG: Bad Move Calculation: right {}".format(risk))
     
-    if (risk > 0.39):
+    if (risk > 0.45):
         retval = True
     return retval
 
